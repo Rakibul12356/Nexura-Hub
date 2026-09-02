@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎓 Nexura-Hub (EduConnect LMS)
 
-## Getting Started
+A modern, responsive, and full-featured Learning Management System (LMS) web application built with **React**, **TypeScript**, **Vite**, **Tailwind CSS**, and **Redux Toolkit**.
 
-First, run the development server:
+---
 
+## 🌐 Live Demo
+
+🔗 **Live URL:** [https://nexurahub.vercel.app/](https://nexurahub.vercel.app/)
+
+---
+
+## ✨ Features
+
+- **🏠 Interactive Landing Page:** Beautiful hero section, featured courses, category browsing, testimonials, and FAQ.
+- **📚 Course Browsing & Details:** Advanced search, category filters, detailed course curriculum outline, pricing, reviews, and instructor info.
+- **🎥 Immersive Video & Lesson Player:** Smooth learning experience with interactive curriculum navigation, lesson progress tracking, and materials.
+- **📊 Instructor & Admin Dashboard:**
+  - Performance overview, student stats, and revenue analytics.
+  - Course creation & management with drag-and-drop module organization.
+  - Live session scheduler and management.
+  - Quiz sets creation and assessments.
+- **🔐 Authentication & User Roles:** Role-based access (Student, Instructor, Admin) with secure sign-in, registration, and profile management.
+- **🎨 Modern UI/UX:** Designed with Radix UI components, Lucide Icons, smooth transitions, and responsive Tailwind CSS layout.
+- **⚡ State Management:** Robust centralized state management powered by Redux Toolkit.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
+- **State Management:** [Redux Toolkit](https://redux-toolkit.js.org/) + `react-redux`
+- **Routing:** [React Router](https://reactrouter.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Forms & Validation:** [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
+- **Drag & Drop:** [@hello-pangea/dnd](https://github.com/hello-pangea/dnd)
+- **Notifications:** [Sonner](https://sonner.emilkowal.ski/)
+- **Deployment:** [Vercel](https://vercel.com/)
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to run the project locally:
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Rakibul12356/Nexura-Hub.git
+cd Nexura-Hub
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 3. Start the development server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Open [http://localhost:5173](http://localhost:5173) in your browser to view the application.
 
-## Learn More
+### 4. Build for production
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+Preview the production build:
+```bash
+npm run preview
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 📂 Project Structure
 
-## Deploy on Vercel
+```text
+src/
+├── assets/          # Static assets & images
+├── components/      # Reusable UI components & layouts
+├── hooks/           # Custom React hooks
+├── layouts/         # Dashboard & Main layout wrappers
+├── lib/             # Utility functions & helpers
+├── pages/           # Application views
+│   ├── auth/        # Sign in, Sign up, Password recovery
+│   ├── dashboard/   # Instructor & Admin dashboard pages
+│   ├── main/        # Landing, Course catalog, Details, Profile
+│   └── player/      # Course video & lesson player
+├── routes/          # Application routing configuration
+├── services/        # API services and network requests
+├── store/           # Redux Toolkit store & slices
+└── types/           # TypeScript interfaces & type definitions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 📄 License
+
+This project is licensed under the MIT License.
