@@ -53,16 +53,6 @@ export const AdminSidebar: React.FC = () => {
       href: "/admin/revenue",
       badge: transactions.length,
     },
-    {
-      icon: GraduationCap,
-      label: "Instructor Studio",
-      href: "/dashboard",
-    },
-    {
-      icon: Home,
-      label: "Back to Home",
-      href: "/",
-    },
   ];
 
   return (

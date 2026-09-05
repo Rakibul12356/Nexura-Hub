@@ -41,11 +41,6 @@ export const SidebarRoutes: React.FC = () => {
       label: "Quiz Sets",
       href: "/dashboard/quiz-sets",
     },
-    {
-      icon: Home,
-      label: "Back to Home",
-      href: "/",
-    },
   ];
 
   return (

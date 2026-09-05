@@ -66,27 +66,6 @@ export const AdminNavbar: React.FC = () => {
               </div>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/admin" className="cursor-pointer">
-                Admin Overview
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/admin/courses" className="cursor-pointer">
-                Course Catalog
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/admin/users" className="cursor-pointer">
-                User Management
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/dashboard" className="cursor-pointer">
-                Instructor Studio
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-destructive focus:text-destructive cursor-pointer"
