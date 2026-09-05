@@ -23,10 +23,18 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 
   const isActive =
     location.pathname === href ||
-    (href !== "/" &&
-      href !== "/dashboard" &&
-      href !== "/admin" &&
-      location.pathname.startsWith(`${href}/`));
+    (href === "/admin/courses" &&
+      location.pathname.startsWith("/admin/courses/") &&
+      location.pathname !== "/admin/courses/add") ||
+    (href === "/dashboard/courses" &&
+      location.pathname.startsWith("/dashboard/courses/") &&
+      location.pathname !== "/dashboard/courses/add") ||
+    (href === "/dashboard/lives" &&
+      location.pathname.startsWith("/dashboard/lives/") &&
+      location.pathname !== "/dashboard/lives/add") ||
+    (href === "/dashboard/quiz-sets" &&
+      location.pathname.startsWith("/dashboard/quiz-sets/") &&
+      location.pathname !== "/dashboard/quiz-sets/add");
 
   const onClick = () => {
     navigate(href);

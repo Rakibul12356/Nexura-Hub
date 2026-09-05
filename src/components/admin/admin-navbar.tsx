@@ -38,18 +38,6 @@ export const AdminNavbar: React.FC = () => {
 
       <div className="flex items-center gap-x-3 ml-auto">
         <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="hidden md:flex gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
-        >
-          <Link to="/admin/courses/add">
-            <PlusCircle className="h-4 w-4" />
-            <span>Add Admin Course (100% Rev)</span>
-          </Link>
-        </Button>
-
-        <Button
           variant="ghost"
           size="sm"
           asChild
