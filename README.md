@@ -1,4 +1,4 @@
-# 🎓 Nexura-Hub (EduConnect LMS)
+# 🎓 Nexura Hub
 
 A modern, responsive, and full-featured Learning Management System (LMS) web application built with **React**, **TypeScript**, **Vite**, **Tailwind CSS**, and **Redux Toolkit**.
 
@@ -36,7 +36,7 @@ A modern, responsive, and full-featured Learning Management System (LMS) web app
 - **Icons:** [Lucide React](https://lucide.dev/)
 - **Forms & Validation:** [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
 - **Drag & Drop:** [@hello-pangea/dnd](https://github.com/hello-pangea/dnd)
-- **Notifications:** [Sonner](https://sonner.emilkowal.ski/)
+- **Notifications:** [React-Toastify](https://fkhadra.github.io/react-toastify/)
 - **Deployment:** [Vercel](https://vercel.com/)
 
 ---

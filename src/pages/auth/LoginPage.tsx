@@ -43,7 +43,7 @@ export const LoginPage: React.FC = () => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "instructor@educonnect.com",
+      email: "instructor@nexurahub.com",
       password: "password123",
     },
   });
@@ -75,19 +75,19 @@ export const LoginPage: React.FC = () => {
 
   // Quick 1-click Demo Logins
   const handleDemoInstructorLogin = () => {
-    form.setValue("email", "instructor@educonnect.com");
+    form.setValue("email", "instructor@nexurahub.com");
     form.setValue("password", "password123");
     handleLogin({
-      email: "instructor@educonnect.com",
+      email: "instructor@nexurahub.com",
       password: "password123",
     });
   };
 
   const handleDemoStudentLogin = () => {
-    form.setValue("email", "student@educonnect.com");
+    form.setValue("email", "student@nexurahub.com");
     form.setValue("password", "password123");
     handleLogin({
-      email: "student@educonnect.com",
+      email: "student@nexurahub.com",
       password: "password123",
     });
   };
@@ -95,7 +95,7 @@ export const LoginPage: React.FC = () => {
   return (
     <Card className="w-full shadow-xl border bg-card/95 backdrop-blur">
       <CardHeader className="space-y-1 text-center pb-4">
-        <CardTitle className="text-2xl font-bold">Sign In to EduConnect</CardTitle>
+        <CardTitle className="text-2xl font-bold">Sign In to Nexura Hub</CardTitle>
         <CardDescription>
           Enter your credentials or choose a quick demo account below
         </CardDescription>

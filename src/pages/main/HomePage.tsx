@@ -29,7 +29,7 @@ export const HomePage: React.FC = () => {
             />
           </div>
           <span className="inline-flex items-center gap-2 rounded-full bg-muted/80 px-4 py-1.5 text-sm font-medium border shadow-sm backdrop-blur">
-            <Sparkles className="h-4 w-4 text-sky-500" /> Hey, Welcome to EduConnect
+            <Sparkles className="h-4 w-4 text-sky-500" /> Hey, Welcome to Nexura Hub
           </span>
           <h1 className="font-heading text-4xl font-extrabold sm:text-5xl md:text-6xl lg:text-7xl tracking-tight">
             Learn Today,{" "}

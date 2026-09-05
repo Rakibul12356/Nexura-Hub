@@ -10,7 +10,7 @@ export const Logo: React.FC<{ className?: string }> = ({ className = "" }) => {
         <GraduationCap className="h-5 w-5" />
       </div>
       <span className="text-xl font-poppins font-bold bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
-        EduConnect
+        Nexura Hub
       </span>
     </Link>
   );

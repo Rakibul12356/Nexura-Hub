@@ -19,7 +19,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ className }) => {
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} EduConnect. All rights reserved.
+          © {new Date().getFullYear()} Nexura Hub. All rights reserved.
         </p>
       </div>
     </footer>

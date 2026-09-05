@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { getAuthToken, removeAuthToken, removeUserData } from "./cookies";
 import { toast } from "react-toastify";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://api.educonnect.local/v1";
+const baseURL = import.meta.env.VITE_API_URL || "https://api.nexurahub.local/v1";
 
 export const apiClient = axios.create({
   baseURL,

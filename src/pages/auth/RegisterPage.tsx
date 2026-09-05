@@ -93,7 +93,7 @@ export const RegisterPage: React.FC = () => {
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
         <CardDescription>
-          Join EduConnect to start learning or teaching
+          Join Nexura Hub to start learning or teaching
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -1,9 +1,9 @@
 import Cookies from "js-cookie";
 import { User } from "@/types/auth";
 
-const TOKEN_KEY = "educonnect_token";
-const USER_KEY = "educonnect_user";
-const THEME_KEY = "educonnect_theme";
+const TOKEN_KEY = "nexurahub_token";
+const USER_KEY = "nexurahub_user";
+const THEME_KEY = "nexurahub_theme";
 
 export const getAuthToken = (): string | undefined => {
   return Cookies.get(TOKEN_KEY);
