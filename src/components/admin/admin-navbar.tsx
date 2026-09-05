@@ -39,18 +39,6 @@ export const AdminNavbar: React.FC = () => {
       <div className="flex items-center gap-x-3 ml-auto">
         <Button
           variant="ghost"
-          size="sm"
-          asChild
-          className="hidden sm:flex gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <Link to="/">
-            <ExternalLink className="h-4 w-4" />
-            <span>Live Site</span>
-          </Link>
-        </Button>
-
-        <Button
-          variant="ghost"
           size="icon"
           onClick={() => dispatch(toggleTheme())}
           className="text-muted-foreground hover:text-foreground"
