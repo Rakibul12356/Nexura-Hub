@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, UserCheck, BookOpen, Sun, Moon } from "lucide-react";
+import { LogOut, UserCheck, BookOpen, Sun, Moon, ShieldCheck } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
 import { toggleTheme } from "@/store/slices/uiSlice";
@@ -63,6 +63,14 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
             <DropdownMenuSeparator />
+            {user?.role === "admin" && (
+              <DropdownMenuItem asChild className="cursor-pointer text-purple-600 font-semibold">
+                <Link to="/admin" className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin Control Hub
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild className="cursor-pointer">
               <Link to="/account" className="flex items-center gap-2">
                 <UserCheck className="h-4 w-4" />

@@ -55,7 +55,9 @@ export const LoginPage: React.FC = () => {
       dispatch(loginSuccess(data));
       toast.success(`Welcome back, ${data.user.firstName}! Logged in as ${data.user.role}.`);
       
-      if (data.user.role === "instructor") {
+      if (data.user.role === "admin") {
+        navigate("/admin");
+      } else if (data.user.role === "instructor") {
         navigate("/dashboard");
       } else {
         navigate("/account/enrolled-courses");
@@ -74,6 +76,15 @@ export const LoginPage: React.FC = () => {
   };
 
   // Quick 1-click Demo Logins
+  const handleDemoAdminLogin = () => {
+    form.setValue("email", "admin@nexurahub.com");
+    form.setValue("password", "password123");
+    handleLogin({
+      email: "admin@nexurahub.com",
+      password: "password123",
+    });
+  };
+
   const handleDemoInstructorLogin = () => {
     form.setValue("email", "instructor@nexurahub.com");
     form.setValue("password", "password123");
@@ -103,33 +114,49 @@ export const LoginPage: React.FC = () => {
       
       <CardContent className="space-y-5">
         {/* Quick 1-Click Demo Login Buttons */}
-        <div className="space-y-2 p-3.5 rounded-xl bg-muted/50 border">
+        <div className="space-y-2.5 p-3.5 rounded-xl bg-muted/50 border">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <Sparkles className="h-3.5 w-3.5 text-sky-500" />
+            <Sparkles className="h-3.5 w-3.5 text-purple-500" />
             <span>Instant Demo Accounts</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* SuperAdmin Demo */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDemoAdminLogin}
+              disabled={isLoading}
+              className="w-full flex items-center justify-between p-2.5 h-auto hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/40 text-left transition-all border-purple-500/30 bg-purple-500/5"
+            >
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-600">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-foreground">SuperAdmin</div>
+                  <div className="text-[10px] text-muted-foreground">5% Cut & Users</div>
+                </div>
+              </div>
+            </Button>
+
             {/* Instructor Demo */}
             <Button
               type="button"
               variant="outline"
               onClick={handleDemoInstructorLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-between p-3 h-auto hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-950/40 text-left transition-all"
+              className="w-full flex items-center justify-between p-2.5 h-auto hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-950/40 text-left transition-all"
             >
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-600">
-                  <ShieldCheck className="h-4 w-4" />
+                  <UserCheck className="h-4 w-4" />
                 </div>
                 <div>
                   <div className="text-xs font-bold text-foreground">Instructor</div>
-                  <div className="text-[10px] text-muted-foreground">Admin & Teaching</div>
+                  <div className="text-[10px] text-muted-foreground">Teaching Studio</div>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-[10px] px-1.5">
-                Login
-              </Badge>
             </Button>
 
             {/* Student Demo */}
@@ -138,7 +165,7 @@ export const LoginPage: React.FC = () => {
               variant="outline"
               onClick={handleDemoStudentLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-between p-3 h-auto hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/40 text-left transition-all"
+              className="w-full flex items-center justify-between p-2.5 h-auto hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/40 text-left transition-all"
             >
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
@@ -146,12 +173,9 @@ export const LoginPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-foreground">Student</div>
-                  <div className="text-[10px] text-muted-foreground">Courses & Quizzes</div>
+                  <div className="text-[10px] text-muted-foreground">Learning Portal</div>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-[10px] px-1.5">
-                Login
-              </Badge>
             </Button>
           </div>
         </div>

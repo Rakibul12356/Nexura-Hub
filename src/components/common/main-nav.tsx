@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { Logo } from "./logo";
-import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen } from "lucide-react";
+import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,13 +66,21 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
       <nav className="flex items-center gap-3">
         {isAuthenticated && user ? (
           <div className="flex items-center gap-3">
-            {user.role === "instructor" ? (
+            {user?.role === "admin" ? (
+              <Link
+                to="/admin"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 hidden md:flex border-purple-500 text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-500/10")}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Admin Hub
+              </Link>
+            ) : user?.role === "instructor" ? (
               <Link
                 to="/dashboard"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 hidden md:flex border-sky-500 text-sky-600 hover:text-sky-700")}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 hidden md:flex border-primary text-primary hover:text-primary")}
               >
                 <LayoutDashboard className="h-4 w-4" />
-                Instructor Dashboard
+                Instructor Studio
               </Link>
             ) : (
               <Link
@@ -110,6 +118,14 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
+                {user.role === "admin" && (
+                  <DropdownMenuItem className="cursor-pointer text-purple-600 font-semibold" asChild>
+                    <Link to="/admin" className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      Admin Control Hub
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="cursor-pointer" asChild>
                   <Link to="/account" className="flex items-center gap-2">
                     <UserCheck className="h-4 w-4" />
@@ -125,7 +141,7 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
                 <DropdownMenuItem className="cursor-pointer" asChild>
                   <Link to="/dashboard" className="flex items-center gap-2">
                     <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+                    Instructor Dashboard
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

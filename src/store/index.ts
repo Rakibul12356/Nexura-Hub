@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import courseReducer from "./slices/courseSlice";
 import dashboardReducer from "./slices/dashboardSlice";
+import adminReducer from "./slices/adminSlice";
 import uiReducer from "./slices/uiSlice";
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authReducer,
     courses: courseReducer,
     dashboard: dashboardReducer,
+    admin: adminReducer,
     ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>

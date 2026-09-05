@@ -6,6 +6,7 @@ import PageLoader from "@/components/common/page-loader";
 import RootLayout from "@/layouts/RootLayout";
 import MainLayout from "@/layouts/MainLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import AdminLayout from "@/layouts/AdminLayout";
 import PlayerLayout from "@/layouts/PlayerLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 import AccountLayout from "@/layouts/AccountLayout";
@@ -35,7 +36,7 @@ const RegisterPage = Loadable(lazy(() => import("@/pages/auth/RegisterPage")));
 // Player Page (Lazy Loaded)
 const CoursePlayerPage = Loadable(lazy(() => import("@/pages/player/CoursePlayerPage")));
 
-// Dashboard Pages (Lazy Loaded)
+// Dashboard Pages (Instructor Studio) (Lazy Loaded)
 const DashboardOverviewPage = Loadable(lazy(() => import("@/pages/dashboard/DashboardOverviewPage")));
 const DashboardCoursesPage = Loadable(lazy(() => import("@/pages/dashboard/courses/DashboardCoursesPage")));
 const AddCoursePage = Loadable(lazy(() => import("@/pages/dashboard/courses/AddCoursePage")));
@@ -49,6 +50,13 @@ const EditLivePage = Loadable(lazy(() => import("@/pages/dashboard/lives/EditLiv
 const DashboardQuizSetsPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/DashboardQuizSetsPage")));
 const AddQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/AddQuizSetPage")));
 const EditQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/EditQuizSetPage")));
+
+// Admin Control Hub Pages (Lazy Loaded)
+const AdminOverviewPage = Loadable(lazy(() => import("@/pages/admin/AdminOverviewPage")));
+const AdminCoursesPage = Loadable(lazy(() => import("@/pages/admin/AdminCoursesPage")));
+const AdminAddCoursePage = Loadable(lazy(() => import("@/pages/admin/AdminAddCoursePage")));
+const AdminUsersPage = Loadable(lazy(() => import("@/pages/admin/AdminUsersPage")));
+const AdminRevenuePage = Loadable(lazy(() => import("@/pages/admin/AdminRevenuePage")));
 
 export const router = createBrowserRouter([
   {
@@ -124,7 +132,7 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Dashboard Layout
+      // Instructor Studio Dashboard Layout
       {
         path: "dashboard",
         element: <DashboardLayout />,
@@ -180,6 +188,34 @@ export const router = createBrowserRouter([
           {
             path: "quiz-sets/:quizSetId",
             element: <EditQuizSetPage />,
+          },
+        ],
+      },
+
+      // Admin SuperAdmin Dashboard Layout
+      {
+        path: "admin",
+        element: <AdminLayout />,
+        children: [
+          {
+            index: true,
+            element: <AdminOverviewPage />,
+          },
+          {
+            path: "courses",
+            element: <AdminCoursesPage />,
+          },
+          {
+            path: "courses/add",
+            element: <AdminAddCoursePage />,
+          },
+          {
+            path: "users",
+            element: <AdminUsersPage />,
+          },
+          {
+            path: "revenue",
+            element: <AdminRevenuePage />,
           },
         ],
       },
