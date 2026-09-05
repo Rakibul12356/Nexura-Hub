@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, BookA } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { addQuizSet } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { QuizSet } from "@/types/course";
 
 export const AddQuizSetPage: React.FC = () => {

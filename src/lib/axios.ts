@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { getAuthToken, removeAuthToken, removeUserData } from "./cookies";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const baseURL = import.meta.env.VITE_API_URL || "https://api.educonnect.local/v1";
 

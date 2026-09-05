@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface QuizOption {
   id: number | string;

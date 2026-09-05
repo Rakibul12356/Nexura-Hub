@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginStart, loginSuccess, loginFailure } from "@/store/slices/authSlice";
 import { authService } from "@/services/authService";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { GraduationCap, ShieldCheck, UserCheck, Sparkles } from "lucide-react";
 
 const loginSchema = z.object({

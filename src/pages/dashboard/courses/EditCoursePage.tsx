@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateCourse, deleteCourse } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Module } from "@/types/course";
 
 export const EditCoursePage: React.FC = () => {

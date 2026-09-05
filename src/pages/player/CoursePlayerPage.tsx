@@ -5,7 +5,7 @@ import { VideoDescription } from "@/components/player/VideoDescription";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const CoursePlayerPage: React.FC = () => {
   const { lessonId = "1" } = useParams();

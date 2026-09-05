@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateProfile } from "@/store/slices/authSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const AccountProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();

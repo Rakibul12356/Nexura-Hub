@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const ReviewModal: React.FC = () => {
   const [open, setOpen] = useState(false);

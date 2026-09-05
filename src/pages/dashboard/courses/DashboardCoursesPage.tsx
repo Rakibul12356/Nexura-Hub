@@ -41,7 +41,7 @@ import { formatPrice } from "@/lib/formatPrice";
 import { Course } from "@/types/course";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteCourse } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const DashboardCoursesPage: React.FC = () => {
   const dispatch = useAppDispatch();

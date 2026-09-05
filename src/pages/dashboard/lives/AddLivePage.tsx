@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { addLiveClass } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { LiveClass } from "@/types/dashboard";
 
 export const AddLivePage: React.FC = () => {

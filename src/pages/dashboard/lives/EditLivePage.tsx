@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio, Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateLiveClass, deleteLiveClass } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const EditLivePage: React.FC = () => {
   const { liveId } = useParams();

@@ -30,7 +30,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginStart, loginSuccess, loginFailure } from "@/store/slices/authSlice";
 import { authService } from "@/services/authService";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Role } from "@/types/auth";
 
 const registerSchema = z

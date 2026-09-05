@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteLiveClass } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const DashboardLivesPage: React.FC = () => {
   const dispatch = useAppDispatch();

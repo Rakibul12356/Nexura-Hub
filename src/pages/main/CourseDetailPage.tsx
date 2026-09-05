@@ -26,7 +26,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();

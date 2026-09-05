@@ -3,7 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { CloudUpload, CheckCircle, Image as ImageIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface UploadDropzoneProps {
   isMulti?: boolean;

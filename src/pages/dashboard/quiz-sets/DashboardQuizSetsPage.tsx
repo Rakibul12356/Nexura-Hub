@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteQuizSet } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const DashboardQuizSetsPage: React.FC = () => {
   const dispatch = useAppDispatch();

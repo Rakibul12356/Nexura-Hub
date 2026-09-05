@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Lesson, LessonResource } from "@/types/course";
 
 export const EditModulePage: React.FC = () => {

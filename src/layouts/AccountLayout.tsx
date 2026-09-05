@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserCheck, BookOpen, Shield, LogOut } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 export const AccountLayout: React.FC = () => {

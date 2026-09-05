@@ -14,7 +14,7 @@ import { LogOut, UserCheck, BookOpen, Sun, Moon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
 import { toggleTheme } from "@/store/slices/uiSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();

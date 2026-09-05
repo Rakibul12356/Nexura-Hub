@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateQuizSet } from "@/store/slices/dashboardSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { QuizQuestion, QuizSet } from "@/types/course";
 
 export const EditQuizSetPage: React.FC = () => {
