@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Sun, Moon, ShieldCheck, ExternalLink, PlusCircle, BookOpen } from "lucide-react";
+import { LogOut, Sun, Moon, ShieldCheck, ExternalLink, PlusCircle, BookOpen, PanelLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
-import { toggleTheme } from "@/store/slices/uiSlice";
+import { toggleTheme, toggleSidebar } from "@/store/slices/uiSlice";
 import { toast } from "react-toastify";
 
 export const AdminNavbar: React.FC = () => {
@@ -22,6 +22,7 @@ export const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const theme = useAppSelector((state) => state.ui.theme);
+  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -30,14 +31,9 @@ export const AdminNavbar: React.FC = () => {
   };
 
   return (
-    <div className="p-4 border-b h-full flex items-center bg-card shadow-sm justify-between">
+    <div className="px-4 border-b h-full flex items-center bg-card shadow-sm justify-between">
       <div className="flex items-center gap-2">
         <MobileAdminSidebar />
-        <div className="hidden sm:flex items-center gap-2">
-          <Badge variant="outline" className="border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10 font-medium">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1" /> Admin Control Hub
-          </Badge>
-        </div>
       </div>
 
       <div className="flex items-center gap-x-3 ml-auto">

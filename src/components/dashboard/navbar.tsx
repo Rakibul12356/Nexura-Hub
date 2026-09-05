@@ -10,10 +10,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, UserCheck, BookOpen, Sun, Moon, ShieldCheck } from "lucide-react";
+import { LogOut, UserCheck, BookOpen, Sun, Moon, ShieldCheck, PanelLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
-import { toggleTheme } from "@/store/slices/uiSlice";
+import { toggleTheme, toggleSidebar } from "@/store/slices/uiSlice";
 import { toast } from "react-toastify";
 
 export const Navbar: React.FC = () => {
@@ -21,6 +21,7 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const theme = useAppSelector((state) => state.ui.theme);
+  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -29,8 +30,10 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <div className="p-4 border-b h-full flex items-center bg-card shadow-sm justify-between">
-      <MobileSidebar />
+    <div className="px-4 border-b h-full flex items-center bg-card shadow-sm justify-between">
+      <div className="flex items-center gap-2">
+        <MobileSidebar />
+      </div>
 
       <div className="flex items-center gap-x-3 ml-auto">
         <Button

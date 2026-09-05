@@ -6,16 +6,20 @@ import {
   BookOpen,
   Users,
   DollarSign,
-  ShieldCheck,
   PlusCircle,
   Home,
   GraduationCap,
+  PanelLeftClose,
 } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
-import { Badge } from "@/components/ui/badge";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { toggleSidebar } from "@/store/slices/uiSlice";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const AdminSidebar: React.FC = () => {
+  const dispatch = useAppDispatch();
   const { courses, users, transactions } = useAppSelector((state) => state.admin);
+  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
 
   const pendingCourses = courses.filter((c) => !c.isPublished).length;
   const pendingUsers = users.filter((u) => u.status === "pending").length;
@@ -56,27 +60,46 @@ export const AdminSidebar: React.FC = () => {
     },
     {
       icon: Home,
-      label: "Main Website",
+      label: "Back to Home",
       href: "/",
     },
   ];
 
   return (
-    <div className="h-full border-r flex flex-col overflow-y-auto bg-card shadow-sm">
-      {/* Brand Header */}
-      <div className="p-5 border-b flex flex-col gap-2">
-        <Logo />
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold w-fit">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          <span>Platform SuperAdmin</span>
-        </div>
+    <div className="h-full border-r flex flex-col overflow-y-auto bg-card shadow-sm select-none">
+      {/* Exact 75px Height Header matching Navbar for a 100% seamless straight line */}
+      <div
+        className={cn(
+          "h-[75px] border-b flex items-center shrink-0 transition-all",
+          isSidebarOpen ? "px-5 justify-between" : "px-2 justify-center"
+        )}
+      >
+        {isSidebarOpen ? (
+          <>
+            <Logo />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => dispatch(toggleSidebar())}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hidden lg:flex"
+              title="Collapse Sidebar"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <button
+            onClick={() => dispatch(toggleSidebar())}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition shadow-sm"
+            title="Expand Sidebar"
+          >
+            <GraduationCap className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Routes */}
       <div className="flex flex-col w-full py-2 flex-1">
-        <div className="px-6 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-          Admin Portal
-        </div>
         {routes.map((route) => (
           <AdminSidebarItem
             key={route.href}
@@ -86,17 +109,6 @@ export const AdminSidebar: React.FC = () => {
             badge={route.badge}
           />
         ))}
-      </div>
-
-      {/* Footer System Status */}
-      <div className="p-4 border-t mt-auto text-xs text-muted-foreground space-y-1 bg-muted/20">
-        <div className="flex items-center justify-between font-medium">
-          <span>Platform Status:</span>
-          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Live & Healthy
-          </span>
-        </div>
-        <div className="text-[11px] text-muted-foreground/80">Nexura Hub Core v2.4</div>
       </div>
     </div>
   );

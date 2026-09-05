@@ -9,7 +9,7 @@ export const MobileAdminSidebar: React.FC = () => {
       <SheetTrigger className="lg:hidden pr-4 hover:opacity-75 transition">
         <Menu className="h-6 w-6" />
       </SheetTrigger>
-      <SheetContent side="left" className="p-0 bg-card w-72">
+      <SheetContent side="left" className="p-0 bg-card w-64">
         <AdminSidebar />
       </SheetContent>
     </Sheet>
