@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Toaster as RadixToaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "sonner";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useAppSelector } from "@/store/hooks";
 
 const ScrollToTop: React.FC = () => {
@@ -29,8 +29,18 @@ export const RootLayout: React.FC = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col font-inter selection:bg-primary selection:text-primary-foreground">
       <ScrollToTop />
       <Outlet />
-      <RadixToaster />
-      <SonnerToaster position="top-right" richColors />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={theme === "dark" ? "dark" : "light"}
+      />
     </div>
   );
 };

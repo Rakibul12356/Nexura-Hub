@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "@/types/common";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface MainNavProps {
   items?: NavItem[];

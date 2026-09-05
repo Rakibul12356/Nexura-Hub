@@ -1,5 +1,6 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import PageLoader from "@/components/common/page-loader";
 
 // Layouts
 import RootLayout from "@/layouts/RootLayout";
@@ -9,36 +10,45 @@ import PlayerLayout from "@/layouts/PlayerLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 import AccountLayout from "@/layouts/AccountLayout";
 
-// Main Pages
-import HomePage from "@/pages/main/HomePage";
-import CoursesPage from "@/pages/main/CoursesPage";
-import CourseDetailPage from "@/pages/main/CourseDetailPage";
-import InstructorProfilePage from "@/pages/main/InstructorProfilePage";
-import EnrollSuccessPage from "@/pages/main/EnrollSuccessPage";
-import AccountProfilePage from "@/pages/main/account/AccountProfilePage";
-import EnrolledCoursesPage from "@/pages/main/account/EnrolledCoursesPage";
+// Helper for Lazy Loading components with Suspense fallback
+const Loadable = (Component: React.LazyExoticComponent<React.ComponentType<any>>) => {
+  return (props: any) => (
+    <Suspense fallback={<PageLoader />}>
+      <Component {...props} />
+    </Suspense>
+  );
+};
 
-// Auth Pages
-import LoginPage from "@/pages/auth/LoginPage";
-import RegisterPage from "@/pages/auth/RegisterPage";
+// Main Pages (Lazy Loaded)
+const HomePage = Loadable(lazy(() => import("@/pages/main/HomePage")));
+const CoursesPage = Loadable(lazy(() => import("@/pages/main/CoursesPage")));
+const CourseDetailPage = Loadable(lazy(() => import("@/pages/main/CourseDetailPage")));
+const InstructorProfilePage = Loadable(lazy(() => import("@/pages/main/InstructorProfilePage")));
+const EnrollSuccessPage = Loadable(lazy(() => import("@/pages/main/EnrollSuccessPage")));
+const AccountProfilePage = Loadable(lazy(() => import("@/pages/main/account/AccountProfilePage")));
+const EnrolledCoursesPage = Loadable(lazy(() => import("@/pages/main/account/EnrolledCoursesPage")));
 
-// Player Page
-import CoursePlayerPage from "@/pages/player/CoursePlayerPage";
+// Auth Pages (Lazy Loaded)
+const LoginPage = Loadable(lazy(() => import("@/pages/auth/LoginPage")));
+const RegisterPage = Loadable(lazy(() => import("@/pages/auth/RegisterPage")));
 
-// Dashboard Pages
-import DashboardOverviewPage from "@/pages/dashboard/DashboardOverviewPage";
-import DashboardCoursesPage from "@/pages/dashboard/courses/DashboardCoursesPage";
-import AddCoursePage from "@/pages/dashboard/courses/AddCoursePage";
-import EditCoursePage from "@/pages/dashboard/courses/EditCoursePage";
-import EditModulePage from "@/pages/dashboard/courses/EditModulePage";
-import CourseEnrollmentsPage from "@/pages/dashboard/courses/CourseEnrollmentsPage";
-import CourseReviewsPage from "@/pages/dashboard/courses/CourseReviewsPage";
-import DashboardLivesPage from "@/pages/dashboard/lives/DashboardLivesPage";
-import AddLivePage from "@/pages/dashboard/lives/AddLivePage";
-import EditLivePage from "@/pages/dashboard/lives/EditLivePage";
-import DashboardQuizSetsPage from "@/pages/dashboard/quiz-sets/DashboardQuizSetsPage";
-import AddQuizSetPage from "@/pages/dashboard/quiz-sets/AddQuizSetPage";
-import EditQuizSetPage from "@/pages/dashboard/quiz-sets/EditQuizSetPage";
+// Player Page (Lazy Loaded)
+const CoursePlayerPage = Loadable(lazy(() => import("@/pages/player/CoursePlayerPage")));
+
+// Dashboard Pages (Lazy Loaded)
+const DashboardOverviewPage = Loadable(lazy(() => import("@/pages/dashboard/DashboardOverviewPage")));
+const DashboardCoursesPage = Loadable(lazy(() => import("@/pages/dashboard/courses/DashboardCoursesPage")));
+const AddCoursePage = Loadable(lazy(() => import("@/pages/dashboard/courses/AddCoursePage")));
+const EditCoursePage = Loadable(lazy(() => import("@/pages/dashboard/courses/EditCoursePage")));
+const EditModulePage = Loadable(lazy(() => import("@/pages/dashboard/courses/EditModulePage")));
+const CourseEnrollmentsPage = Loadable(lazy(() => import("@/pages/dashboard/courses/CourseEnrollmentsPage")));
+const CourseReviewsPage = Loadable(lazy(() => import("@/pages/dashboard/courses/CourseReviewsPage")));
+const DashboardLivesPage = Loadable(lazy(() => import("@/pages/dashboard/lives/DashboardLivesPage")));
+const AddLivePage = Loadable(lazy(() => import("@/pages/dashboard/lives/AddLivePage")));
+const EditLivePage = Loadable(lazy(() => import("@/pages/dashboard/lives/EditLivePage")));
+const DashboardQuizSetsPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/DashboardQuizSetsPage")));
+const AddQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/AddQuizSetPage")));
+const EditQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/EditQuizSetPage")));
 
 export const router = createBrowserRouter([
   {
