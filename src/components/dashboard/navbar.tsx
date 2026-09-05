@@ -67,12 +67,20 @@ export const Navbar: React.FC = () => {
             </div>
             <DropdownMenuSeparator />
             {user?.role === "admin" && (
-              <DropdownMenuItem asChild className="cursor-pointer text-purple-600 font-semibold">
-                <Link to="/admin" className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Admin Control Hub
-                </Link>
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem asChild className="cursor-pointer font-semibold">
+                  <Link to="/admin" className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-purple-600" />
+                    Admin Control Hub
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer font-semibold">
+                  <Link to="/dashboard" className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-sky-600" />
+                    Instructor Studio
+                  </Link>
+                </DropdownMenuItem>
+              </>
             )}
             <DropdownMenuItem asChild className="cursor-pointer">
               <Link to="/account" className="flex items-center gap-2">

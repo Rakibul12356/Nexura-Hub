@@ -192,10 +192,10 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Admin SuperAdmin Dashboard Layout
+      // Admin SuperAdmin Dashboard Layout (Uses Common DashboardLayout)
       {
         path: "admin",
-        element: <AdminLayout />,
+        element: <DashboardLayout />,
         children: [
           {
             index: true,

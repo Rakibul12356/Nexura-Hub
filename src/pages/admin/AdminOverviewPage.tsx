@@ -13,14 +13,8 @@ import {
   TrendingUp,
   Users,
   GraduationCap,
-  BookOpen,
-  PlusCircle,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
   Percent,
-  Sparkles,
 } from "lucide-react";
 
 export const AdminOverviewPage: React.FC = () => {
@@ -39,35 +33,15 @@ export const AdminOverviewPage: React.FC = () => {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-card border shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Admin Command Center
-            </h1>
-            <Badge className="bg-purple-600 hover:bg-purple-700 text-white gap-1">
-              <Sparkles className="h-3 w-3" /> Live Operations
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Complete platform management: 5% Commission on instructor courses & 100% on admin courses.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <Button asChild size="sm" className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm">
-            <Link to="/admin/courses/add">
-              <PlusCircle className="mr-1.5 h-4 w-4" /> Add Admin Course
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/admin/revenue">
-              <DollarSign className="mr-1.5 h-4 w-4" /> View Commission Ledger
-            </Link>
-          </Button>
-        </div>
+    <div className="p-6 space-y-6">
+      {/* Page Title & Subtitle */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Dashboard Overview
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Monitor real-time platform metrics, course sales, and revenue performance.
+        </p>
       </div>
 
       {/* KPI Stats Cards */}

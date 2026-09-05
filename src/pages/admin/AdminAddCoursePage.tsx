@@ -69,7 +69,7 @@ export const AdminAddCoursePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <Link
         to="/admin/courses"
         className="flex items-center text-sm hover:opacity-75 transition text-muted-foreground w-fit gap-1"
@@ -77,20 +77,11 @@ export const AdminAddCoursePage: React.FC = () => {
         <ArrowLeft className="h-4 w-4" /> Back to Course Management
       </Link>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Create Official Admin Course</h1>
-            <ShieldCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Admin courses keep <strong>100% of all sales</strong> directly in the platform treasury.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-          <DollarSign className="h-4 w-4" /> 100% Revenue Share
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Create Admin Course</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Add an official platform course with 100% platform revenue share.
+        </p>
       </div>
 
       <div className="rounded-xl border bg-card p-6 shadow-sm">
