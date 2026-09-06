@@ -8,6 +8,7 @@ import { ArrowLeft, Radio, Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateLiveClass, deleteLiveClass } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const EditLivePage: React.FC = () => {
   const { liveId } = useParams();
@@ -40,8 +41,9 @@ export const EditLivePage: React.FC = () => {
     navigate("/dashboard/lives");
   };
 
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this live class?")) {
+  const handleDelete = async () => {
+    const ok = await confirmDelete("Are you sure you want to delete this live class?");
+    if (ok) {
       dispatch(deleteLiveClass(live.id));
       toast.success("Live class deleted");
       navigate("/dashboard/lives");

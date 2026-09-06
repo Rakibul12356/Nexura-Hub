@@ -42,6 +42,7 @@ import { Course } from "@/types/course";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteCourse } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const DashboardCoursesPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -49,8 +50,9 @@ export const DashboardCoursesPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const handleDelete = (id: string | number, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+  const handleDelete = async (id: string | number, title: string) => {
+    const ok = await confirmDelete(`Are you sure you want to delete "${title}"?`);
+    if (ok) {
       dispatch(deleteCourse(id));
       toast.success("Course deleted successfully");
     }

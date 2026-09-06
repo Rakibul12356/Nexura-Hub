@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateCourse, deleteCourse } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
 import { Module } from "@/types/course";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const EditCoursePage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -95,8 +96,9 @@ export const EditCoursePage: React.FC = () => {
     );
   };
 
-  const handleDeleteCourse = () => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
+  const handleDeleteCourse = async () => {
+    const ok = await confirmDelete("Are you sure you want to delete this course?");
+    if (ok) {
       dispatch(deleteCourse(course.id));
       toast.success("Course deleted successfully");
       navigate("/dashboard/courses");
@@ -153,8 +155,9 @@ export const EditCoursePage: React.FC = () => {
     toast.success("Modules reordered");
   };
 
-  const handleDeleteModule = (moduleId: string | number) => {
-    if (window.confirm("Are you sure you want to delete this module?")) {
+  const handleDeleteModule = async (moduleId: string | number) => {
+    const ok = await confirmDelete("Are you sure you want to delete this module?");
+    if (ok) {
       const updated = modules.filter((m) => String(m.id) !== String(moduleId));
       setModules(updated);
       dispatch(updateCourse({ ...course, modules: updated }));

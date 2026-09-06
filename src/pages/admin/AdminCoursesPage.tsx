@@ -47,6 +47,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const AdminCoursesPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -94,8 +95,9 @@ export const AdminCoursesPage: React.FC = () => {
     toast.success(current ? "Removed from featured" : "Marked as featured on homepage!");
   };
 
-  const handleDelete = (id: string | number, title: string) => {
-    if (window.confirm(`Are you sure you want to permanently delete "${title}"?`)) {
+  const handleDelete = async (id: string | number, title: string) => {
+    const ok = await confirmDelete(`Are you sure you want to permanently delete "${title}"?`);
+    if (ok) {
       dispatch(deleteAdminCourse(id));
       toast.success("Course deleted successfully");
     }

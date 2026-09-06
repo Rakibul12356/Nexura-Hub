@@ -29,6 +29,7 @@ import {
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteLiveClass } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const DashboardLivesPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -41,8 +42,9 @@ export const DashboardLivesPage: React.FC = () => {
       l.date.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (id: string | number) => {
-    if (window.confirm("Are you sure you want to delete this live class?")) {
+  const handleDelete = async (id: string | number) => {
+    const ok = await confirmDelete("Are you sure you want to delete this live class?");
+    if (ok) {
       dispatch(deleteLiveClass(id));
       toast.success("Live class deleted");
     }

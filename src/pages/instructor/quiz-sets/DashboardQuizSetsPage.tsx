@@ -28,6 +28,7 @@ import {
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { deleteQuizSet } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const DashboardQuizSetsPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -38,8 +39,9 @@ export const DashboardQuizSetsPage: React.FC = () => {
     q.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (id: string | number) => {
-    if (window.confirm("Are you sure you want to delete this quiz set?")) {
+  const handleDelete = async (id: string | number) => {
+    const ok = await confirmDelete("Are you sure you want to delete this quiz set?");
+    if (ok) {
       dispatch(deleteQuizSet(id));
       toast.success("Quiz set deleted");
     }

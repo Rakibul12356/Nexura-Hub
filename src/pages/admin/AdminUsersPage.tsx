@@ -42,6 +42,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const AdminUsersPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -82,12 +83,11 @@ export const AdminUsersPage: React.FC = () => {
     toast.success(`Role for ${user.firstName} changed to ${newRole}`);
   };
 
-  const handleDelete = (user: ManagedUser) => {
-    if (
-      window.confirm(
-        `Are you sure you want to remove user ${user.firstName} ${user.lastName}?`
-      )
-    ) {
+  const handleDelete = async (user: ManagedUser) => {
+    const ok = await confirmDelete(
+      `Are you sure you want to remove user ${user.firstName} ${user.lastName}?`
+    );
+    if (ok) {
       dispatch(deleteUser(user.id));
       toast.success("User account removed");
     }

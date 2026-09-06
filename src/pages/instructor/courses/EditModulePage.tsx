@@ -56,6 +56,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toast } from "react-toastify";
 import { Lesson, LessonResource, QuizQuestion } from "@/types/course";
 import { cn } from "@/lib/utils";
+import { confirmDelete } from "@/lib/confirmDelete";
 
 export const EditModulePage: React.FC = () => {
   const { courseId = "1", moduleId = "1" } = useParams();
@@ -360,8 +361,9 @@ export const EditModulePage: React.FC = () => {
               {isPublished ? "Unpublish" : "Publish"}
             </Button>
             <Button
-              onClick={() => {
-                if (window.confirm("Are you sure you want to delete this module?")) {
+              onClick={async () => {
+                const ok = await confirmDelete("Are you sure you want to delete this module?");
+                if (ok) {
                   toast.success("Module deleted successfully");
                   navigate(`/dashboard/courses/${courseId}`);
                 }
