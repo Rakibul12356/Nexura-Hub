@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getStoredTheme, setStoredTheme } from "@/lib/cookies";
+import { getStoredTheme, setStoredTheme } from "@/api/axiosInstance";
 
 interface UIState {
   isSidebarOpen: boolean;

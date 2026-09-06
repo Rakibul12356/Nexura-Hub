@@ -1,4 +1,4 @@
-import apiClient from "@/lib/axios";
+import apiClient from "@/api/axiosInstance";
 import { LoginCredentials, RegisterCredentials, User } from "@/types/auth";
 
 export const authService = {

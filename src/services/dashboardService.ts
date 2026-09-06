@@ -1,4 +1,4 @@
-import apiClient from "@/lib/axios";
+import apiClient from "@/api/axiosInstance";
 import { DashboardStats, LiveClass, StudentEnrollment } from "@/types/dashboard";
 import { Course, QuizSet } from "@/types/course";
 import {

@@ -1,4 +1,4 @@
-import apiClient from "@/lib/axios";
+import apiClient from "@/api/axiosInstance";
 import { Course, Category, EnrolledCourse } from "@/types/course";
 import { initialCourses, initialCategories, initialEnrolledCourses } from "@/store/slices/courseSlice";
 
