@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/formatPrice";
 import { RevenueChart } from "@/components/admin/charts/RevenueChart";
 import { StudentGrowthChart } from "@/components/admin/charts/StudentGrowthChart";
 import { CategoryDistributionChart } from "@/components/admin/charts/CategoryDistributionChart";
+import { CouponManager } from "@/components/admin/CouponManager";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -189,6 +190,9 @@ export const AdminOverviewPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Coupon Engine Management */}
+      <CouponManager />
     </div>
   );
 };

@@ -23,6 +23,8 @@ interface MainNavProps {
   children?: React.ReactNode;
 }
 
+import NotificationCenter from "./NotificationCenter";
+
 export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const dispatch = useAppDispatch();
@@ -66,6 +68,7 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
       <nav className="flex items-center gap-3">
         {isAuthenticated && user ? (
           <div className="flex items-center gap-3">
+            <NotificationCenter />
             <Link
               to={
                 user?.role === "admin"

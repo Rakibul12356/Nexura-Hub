@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button, buttonVariants } from "@/components/ui/button";
+import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
 import {
   Accordion,
   AccordionContent,
@@ -370,13 +371,11 @@ export const CourseDetailPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Button
-                  onClick={handleEnroll}
-                  size="lg"
-                  className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold text-base shadow"
-                >
-                  Enroll Now
-                </Button>
+                <PaymentCheckoutModal
+                  courseTitle={course.title}
+                  originalPrice={course.price}
+                  onSuccess={() => navigate("/enroll-success")}
+                />
                 <Button
                   asChild
                   variant="outline"

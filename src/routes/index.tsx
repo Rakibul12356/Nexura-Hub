@@ -57,6 +57,8 @@ const AdminCoursesPage = Loadable(lazy(() => import("@/pages/admin/AdminCoursesP
 const AdminUsersPage = Loadable(lazy(() => import("@/pages/admin/AdminUsersPage")));
 const AdminRevenuePage = Loadable(lazy(() => import("@/pages/admin/AdminRevenuePage")));
 
+import ProtectedRoute from "@/components/common/ProtectedRoute";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -89,7 +91,11 @@ export const router = createBrowserRouter([
           // Account nested routes
           {
             path: "account",
-            element: <AccountLayout />,
+            element: (
+              <ProtectedRoute>
+                <AccountLayout />
+              </ProtectedRoute>
+            ),
             children: [
               {
                 index: true,
@@ -122,7 +128,11 @@ export const router = createBrowserRouter([
       // Player / Learning Layout
       {
         path: "player/:courseSlug/:lessonId",
-        element: <PlayerLayout />,
+        element: (
+          <ProtectedRoute>
+            <PlayerLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             index: true,
@@ -134,7 +144,11 @@ export const router = createBrowserRouter([
       // Instructor Studio Dashboard Layout
       {
         path: "dashboard",
-        element: <DashboardLayout />,
+        element: (
+          <ProtectedRoute requiredRoles={["instructor", "admin"]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             index: true,
@@ -194,7 +208,11 @@ export const router = createBrowserRouter([
       // Admin SuperAdmin Dashboard Layout (Uses Common DashboardLayout)
       {
         path: "admin",
-        element: <DashboardLayout />,
+        element: (
+          <ProtectedRoute requiredRoles={["admin"]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             index: true,

@@ -44,12 +44,20 @@ import {
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
 
+import { exportToCsv } from "@/lib/exportToCsv";
+import { Download } from "lucide-react";
+
 export const AdminUsersPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { users } = useAppSelector((state) => state.admin);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoleTab, setSelectedRoleTab] = useState("all");
+
+  const handleExportUsersCsv = () => {
+    exportToCsv("Nexura_Platform_Users.csv", users);
+    toast.success("Users list exported to CSV!");
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -104,16 +112,22 @@ export const AdminUsersPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
-          <Badge variant="outline" className="py-1 px-2.5 bg-card">
-            <Users className="h-3.5 w-3.5 mr-1 text-sky-500" /> {students.length} Students
-          </Badge>
-          <Badge variant="outline" className="py-1 px-2.5 bg-card">
-            <GraduationCap className="h-3.5 w-3.5 mr-1 text-indigo-500" /> {instructors.length} Instructors
-          </Badge>
-          <Badge variant="outline" className="py-1 px-2.5 bg-card">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1 text-purple-500" /> {admins.length} Admins
-          </Badge>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleExportUsersCsv} variant="outline" size="sm" className="gap-2">
+            <Download className="h-4 w-4" /> Export Users CSV
+          </Button>
+
+          <div className="flex items-center gap-2 text-xs">
+            <Badge variant="outline" className="py-1 px-2.5 bg-card">
+              <Users className="h-3.5 w-3.5 mr-1 text-sky-500" /> {students.length} Students
+            </Badge>
+            <Badge variant="outline" className="py-1 px-2.5 bg-card">
+              <GraduationCap className="h-3.5 w-3.5 mr-1 text-indigo-500" /> {instructors.length} Instructors
+            </Badge>
+            <Badge variant="outline" className="py-1 px-2.5 bg-card">
+              <ShieldCheck className="h-3.5 w-3.5 mr-1 text-purple-500" /> {admins.length} Admins
+            </Badge>
+          </div>
         </div>
       </div>
 

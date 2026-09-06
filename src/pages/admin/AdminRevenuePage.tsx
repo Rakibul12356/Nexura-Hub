@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+import { exportToCsv } from "@/lib/exportToCsv";
+
 export const AdminRevenuePage: React.FC = () => {
   const { transactions, courses, monthlyGrowth } = useAppSelector((state) => state.admin);
 
@@ -71,7 +73,8 @@ export const AdminRevenuePage: React.FC = () => {
   }, [transactions, searchTerm, selectedCreatorFilter]);
 
   const handleExportCSV = () => {
-    toast.success("Transaction ledger exported as CSV report!");
+    exportToCsv("Nexura_Revenue_Ledger.csv", filteredTransactions);
+    toast.success("Transaction ledger exported as CSV file!");
   };
 
   return (

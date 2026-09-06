@@ -1,26 +1,17 @@
 import React from "react";
+import HlsPlayer from "./HlsPlayer";
 
 interface VideoPlayerProps {
   url?: string;
   title?: string;
+  onTimeUpdate?: (currentTime: number) => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
-  url = "https://www.youtube.com/embed/666K4aizIu8",
-  title = "Course Lesson Video",
+  url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+  onTimeUpdate,
 }) => {
-  return (
-    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-xl border">
-      <iframe
-        className="w-full h-full"
-        src={url}
-        title={title}
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
-    </div>
-  );
+  return <HlsPlayer src={url} onTimeUpdate={onTimeUpdate} />;
 };
 
 export default VideoPlayer;
