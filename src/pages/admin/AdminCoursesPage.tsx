@@ -111,13 +111,6 @@ export const AdminCoursesPage: React.FC = () => {
             Full administrative access over all instructor and platform courses ({courses.length} total)
           </p>
         </div>
-
-        <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm gap-2">
-          <Link to="/admin/courses/add">
-            <PlusCircle className="h-4 w-4" />
-            <span>Create Admin Course (100% Rev)</span>
-          </Link>
-        </Button>
       </div>
 
       {/* Commission Rules Info Banner */}

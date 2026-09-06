@@ -54,7 +54,6 @@ const EditQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/
 // Admin Control Hub Pages (Lazy Loaded)
 const AdminOverviewPage = Loadable(lazy(() => import("@/pages/admin/AdminOverviewPage")));
 const AdminCoursesPage = Loadable(lazy(() => import("@/pages/admin/AdminCoursesPage")));
-const AdminAddCoursePage = Loadable(lazy(() => import("@/pages/admin/AdminAddCoursePage")));
 const AdminUsersPage = Loadable(lazy(() => import("@/pages/admin/AdminUsersPage")));
 const AdminRevenuePage = Loadable(lazy(() => import("@/pages/admin/AdminRevenuePage")));
 
@@ -204,10 +203,6 @@ export const router = createBrowserRouter([
           {
             path: "courses",
             element: <AdminCoursesPage />,
-          },
-          {
-            path: "courses/add",
-            element: <AdminAddCoursePage />,
           },
           {
             path: "users",

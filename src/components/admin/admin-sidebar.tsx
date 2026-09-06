@@ -37,11 +37,6 @@ export const AdminSidebar: React.FC = () => {
       badge: pendingCourses > 0 ? `${pendingCourses} new` : courses.length,
     },
     {
-      icon: PlusCircle,
-      label: "Add Admin Course",
-      href: "/admin/courses/add",
-    },
-    {
       icon: Users,
       label: "User Management",
       href: "/admin/users",

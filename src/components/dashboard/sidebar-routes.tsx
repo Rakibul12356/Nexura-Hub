@@ -41,11 +41,6 @@ export const SidebarRoutes: React.FC = () => {
       badge: pendingCourses > 0 ? `${pendingCourses} new` : adminCourses.length,
     },
     {
-      icon: PlusCircle,
-      label: "Add Admin Course",
-      href: "/admin/courses/add",
-    },
-    {
       icon: Users,
       label: "User Management",
       href: "/admin/users",
