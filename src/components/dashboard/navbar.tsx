@@ -66,35 +66,31 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
             <DropdownMenuSeparator />
-            {user?.role === "admin" && (
+            {user?.role !== "admin" && (
               <>
-                <DropdownMenuItem asChild className="cursor-pointer font-semibold">
-                  <Link to="/admin" className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-purple-600" />
-                    Admin Control Hub
+                {user?.role === "instructor" && (
+                  <DropdownMenuItem asChild className="cursor-pointer font-semibold">
+                    <Link to="/dashboard" className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-sky-600" />
+                      Instructor Studio
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/account" className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer font-semibold">
-                  <Link to="/dashboard" className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-sky-600" />
-                    Instructor Studio
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/account/enrolled-courses" className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    My Courses
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
               </>
             )}
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/account" className="flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/account/enrolled-courses" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                My Courses
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
               className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2"

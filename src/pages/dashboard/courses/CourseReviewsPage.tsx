@@ -47,7 +47,7 @@ export const CourseReviewsPage: React.FC = () => {
   );
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 space-y-6 w-full">
       <div>
         <Link
           to={`/dashboard/courses/${courseId}`}

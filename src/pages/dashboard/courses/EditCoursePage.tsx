@@ -162,7 +162,7 @@ export const EditCoursePage: React.FC = () => {
         />
       )}
 
-      <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <div className="p-6 space-y-6 w-full">
         {/* Back and Top Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Link

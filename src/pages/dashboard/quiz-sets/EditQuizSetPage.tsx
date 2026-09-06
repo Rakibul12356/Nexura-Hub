@@ -110,7 +110,7 @@ export const EditQuizSetPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <Link
           to="/dashboard/quiz-sets"
