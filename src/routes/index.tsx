@@ -36,20 +36,20 @@ const RegisterPage = Loadable(lazy(() => import("@/pages/auth/RegisterPage")));
 // Player Page (Lazy Loaded)
 const CoursePlayerPage = Loadable(lazy(() => import("@/pages/player/CoursePlayerPage")));
 
-// Dashboard Pages (Instructor Studio) (Lazy Loaded)
-const DashboardOverviewPage = Loadable(lazy(() => import("@/pages/dashboard/DashboardOverviewPage")));
-const DashboardCoursesPage = Loadable(lazy(() => import("@/pages/dashboard/courses/DashboardCoursesPage")));
-const AddCoursePage = Loadable(lazy(() => import("@/pages/dashboard/courses/AddCoursePage")));
-const EditCoursePage = Loadable(lazy(() => import("@/pages/dashboard/courses/EditCoursePage")));
-const EditModulePage = Loadable(lazy(() => import("@/pages/dashboard/courses/EditModulePage")));
-const CourseEnrollmentsPage = Loadable(lazy(() => import("@/pages/dashboard/courses/CourseEnrollmentsPage")));
-const CourseReviewsPage = Loadable(lazy(() => import("@/pages/dashboard/courses/CourseReviewsPage")));
-const DashboardLivesPage = Loadable(lazy(() => import("@/pages/dashboard/lives/DashboardLivesPage")));
-const AddLivePage = Loadable(lazy(() => import("@/pages/dashboard/lives/AddLivePage")));
-const EditLivePage = Loadable(lazy(() => import("@/pages/dashboard/lives/EditLivePage")));
-const DashboardQuizSetsPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/DashboardQuizSetsPage")));
-const AddQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/AddQuizSetPage")));
-const EditQuizSetPage = Loadable(lazy(() => import("@/pages/dashboard/quiz-sets/EditQuizSetPage")));
+// Instructor Pages (Instructor Studio) (Lazy Loaded)
+const DashboardOverviewPage = Loadable(lazy(() => import("@/pages/instructor/DashboardOverviewPage")));
+const DashboardCoursesPage = Loadable(lazy(() => import("@/pages/instructor/courses/DashboardCoursesPage")));
+const AddCoursePage = Loadable(lazy(() => import("@/pages/instructor/courses/AddCoursePage")));
+const EditCoursePage = Loadable(lazy(() => import("@/pages/instructor/courses/EditCoursePage")));
+const EditModulePage = Loadable(lazy(() => import("@/pages/instructor/courses/EditModulePage")));
+const CourseEnrollmentsPage = Loadable(lazy(() => import("@/pages/instructor/courses/CourseEnrollmentsPage")));
+const CourseReviewsPage = Loadable(lazy(() => import("@/pages/instructor/courses/CourseReviewsPage")));
+const DashboardLivesPage = Loadable(lazy(() => import("@/pages/instructor/lives/DashboardLivesPage")));
+const AddLivePage = Loadable(lazy(() => import("@/pages/instructor/lives/AddLivePage")));
+const EditLivePage = Loadable(lazy(() => import("@/pages/instructor/lives/EditLivePage")));
+const DashboardQuizSetsPage = Loadable(lazy(() => import("@/pages/instructor/quiz-sets/DashboardQuizSetsPage")));
+const AddQuizSetPage = Loadable(lazy(() => import("@/pages/instructor/quiz-sets/AddQuizSetPage")));
+const EditQuizSetPage = Loadable(lazy(() => import("@/pages/instructor/quiz-sets/EditQuizSetPage")));
 
 // Admin Control Hub Pages (Lazy Loaded)
 const AdminOverviewPage = Loadable(lazy(() => import("@/pages/admin/AdminOverviewPage")));
