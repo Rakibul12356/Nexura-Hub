@@ -11,6 +11,9 @@ export interface LessonResource {
   title: string;
   url?: string;
   size?: string;
+  type?: "github" | "link" | "pdf" | "richtext";
+  content?: string;
+  fileName?: string;
 }
 
 export interface Lesson {
@@ -25,6 +28,7 @@ export interface Lesson {
   completed?: boolean;
   quizSetId?: string | number;
   quizSetTitle?: string;
+  questions?: QuizQuestion[];
   resources?: LessonResource[];
 }
 
