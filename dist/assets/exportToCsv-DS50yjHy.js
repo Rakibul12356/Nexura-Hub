@@ -1,0 +1,3 @@
+function u(r,n){if(!n||!n.length){console.warn("No data provided to exportToCsv");return}const i=",",l=Object.keys(n[0]),a=l.join(i)+`
+`+n.map(o=>l.map(c=>{let t=o[c]===null||o[c]===void 0?"":o[c];return t=t instanceof Date?t.toLocaleString():t.toString(),t=t.replace(/"/g,'""'),t.search(/("|,|\n)/g)>=0&&(t=`"${t}"`),t}).join(i)).join(`
+`),s=new Blob([a],{type:"text/csv;charset=utf-8;"}),d=URL.createObjectURL(s),e=document.createElement("a");e.setAttribute("href",d),e.setAttribute("download",r),e.style.visibility="hidden",document.body.appendChild(e),e.click(),document.body.removeChild(e)}export{u as e};

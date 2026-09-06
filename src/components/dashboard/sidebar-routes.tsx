@@ -52,11 +52,6 @@ export const SidebarRoutes: React.FC = () => {
       href: "/admin/revenue",
       badge: transactions.length,
     },
-    {
-      icon: GraduationCap,
-      label: "Instructor Studio",
-      href: "/dashboard",
-    },
   ];
 
   const instructorRoutes = [
