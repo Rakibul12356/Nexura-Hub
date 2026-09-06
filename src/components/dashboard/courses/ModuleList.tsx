@@ -14,12 +14,14 @@ interface ModuleListProps {
   items: Module[];
   onReorder: (updateData: { id: string | number; position: number }[]) => void;
   onEdit: (id: string | number) => void;
+  onDelete?: (id: string | number) => void;
 }
 
 export const ModuleList: React.FC<ModuleListProps> = ({
   items,
   onReorder,
   onEdit,
+  onDelete,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [modules, setModules] = useState(items);
@@ -79,7 +81,11 @@ export const ModuleList: React.FC<ModuleListProps> = ({
                       <Grip className="h-4 w-4 text-muted-foreground" />
                     </div>
 
-                    <span className="font-medium px-2 py-1 flex-1 line-clamp-1">
+                    <span
+                      onClick={() => onEdit(module.id)}
+                      className="font-medium px-2 py-1 flex-1 line-clamp-1 cursor-pointer hover:text-sky-600 transition-colors"
+                      title="Click to edit module details"
+                    >
                       {module.title}
                     </span>
 
@@ -90,11 +96,24 @@ export const ModuleList: React.FC<ModuleListProps> = ({
                       <button
                         type="button"
                         onClick={() => onEdit(module.id)}
-                        className="p-1 hover:text-sky-600 transition-colors"
+                        className="p-1 hover:text-sky-600 transition-colors text-muted-foreground"
                         title="Edit Module"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(module.id);
+                          }}
+                          className="p-1 hover:text-destructive text-muted-foreground transition-colors"
+                          title="Delete Module"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

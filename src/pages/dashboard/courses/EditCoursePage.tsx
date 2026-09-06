@@ -153,6 +153,15 @@ export const EditCoursePage: React.FC = () => {
     toast.success("Modules reordered");
   };
 
+  const handleDeleteModule = (moduleId: string | number) => {
+    if (window.confirm("Are you sure you want to delete this module?")) {
+      const updated = modules.filter((m) => String(m.id) !== String(moduleId));
+      setModules(updated);
+      dispatch(updateCourse({ ...course, modules: updated }));
+      toast.success("Module deleted successfully");
+    }
+  };
+
   return (
     <>
       {!isPublished && (
@@ -404,6 +413,7 @@ export const EditCoursePage: React.FC = () => {
                   onEdit={(moduleId) =>
                     navigate(`/dashboard/courses/${course.id}/modules/${moduleId}`)
                   }
+                  onDelete={handleDeleteModule}
                 />
 
                 <p className="text-xs text-muted-foreground text-center">
