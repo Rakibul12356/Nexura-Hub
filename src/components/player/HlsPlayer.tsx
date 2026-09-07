@@ -227,12 +227,12 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
           className="w-full h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer accent-sky-500 hover:h-2.5 transition-all"
         />
 
-        <div className="flex items-center justify-between text-white text-xs">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between text-white text-xs gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20"
               onClick={togglePlay}
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -241,45 +241,45 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20 hidden sm:inline-flex"
               onClick={() => seekBy(-10)}
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20 hidden sm:inline-flex"
               onClick={() => seekBy(10)}
             >
-              <RotateCw className="h-4 w-4" />
+              <RotateCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20"
               onClick={toggleMute}
             >
               {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </Button>
 
-            <span className="font-mono text-slate-300">
+            <span className="font-mono text-[10px] sm:text-xs text-slate-300">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 relative">
+          <div className="flex items-center gap-1 sm:gap-2 relative">
             {/* Speed selection */}
             <div className="relative">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-white hover:bg-white/20 text-xs font-semibold gap-1"
+                className="h-7 sm:h-8 px-1.5 sm:px-2 text-white hover:bg-white/20 text-[10px] sm:text-xs font-semibold gap-1"
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
               >
-                <Settings className="h-3.5 w-3.5" />
+                <Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 {playbackSpeed}x
               </Button>
 
@@ -303,21 +303,21 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20 hidden xs:inline-flex"
               onClick={togglePiP}
               title="Picture-in-Picture"
             >
-              <PictureInPicture2 className="h-4 w-4" />
+              <PictureInPicture2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-white hover:bg-white/20"
               onClick={toggleFullscreen}
               title="Fullscreen"
             >
-              <Maximize className="h-4 w-4" />
+              <Maximize className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>

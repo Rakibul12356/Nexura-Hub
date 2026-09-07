@@ -33,25 +33,14 @@ export const PlayerLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Top Learning Navigation Bar (Container Centered) */}
       <header className="h-16 border-b z-50 bg-card/95 backdrop-blur sticky top-0 left-0 right-0 shadow-sm flex items-center">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Left Side: Mobile Menu & Logo */}
-          <div className="flex items-center gap-3">
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-80">
-                <CourseSidebar onLessonClick={() => setMobileOpen(false)} />
-              </SheetContent>
-            </Sheet>
-
+        <div className="container mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Left Side: Logo */}
+          <div className="flex items-center">
             <Logo />
           </div>
 
-          {/* Right Side: My Courses & User Profile Dropdown */}
-          <div className="flex items-center gap-3">
+          {/* Right Side: My Courses, User Profile Dropdown, and Mobile Sidebar Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button asChild size="sm" variant="outline" className="hidden sm:flex">
               <Link to="/account/enrolled-courses">My Courses</Link>
             </Button>
@@ -126,13 +115,25 @@ export const PlayerLayout: React.FC = () => {
                 <Link to="/login">Login</Link>
               </Button>
             )}
+
+            {/* Mobile Curriculum Sidebar Menu Button (Beside Profile) */}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="p-0 w-80">
+                <CourseSidebar onLessonClick={() => setMobileOpen(false)} />
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
       {/* Main Container 12-Column Layout */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1 w-full max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           {/* Main Video & Content Area (Left 8 Cols) */}
           <main className="lg:col-span-8 w-full min-w-0">
             <Outlet />

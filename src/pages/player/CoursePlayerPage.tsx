@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
-import { VideoDescription } from "@/components/player/VideoDescription";
-import { PlayerNotes } from "@/components/player/PlayerNotes";
-import { LessonDiscussion } from "@/components/player/LessonDiscussion";
+import { QuizModal } from "@/components/player/QuizModal";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, FileText, Download } from "lucide-react";
 import { toast } from "react-toastify";
+import { LessonResource } from "@/types/course";
 
 interface LessonConfig {
   id: string;
@@ -21,6 +21,11 @@ interface LessonConfig {
     options: Array<{ id: number | string; label: string; isCorrect: boolean }>;
   }>;
 }
+
+const defaultResources: LessonResource[] = [
+  { id: "1", title: "lecture-01-starter-code.zip", size: "2.4 MB", url: "https://github.com" },
+  { id: "2", title: "react-architecture-cheatsheet.pdf", size: "1.1 MB", url: "https://react.dev" },
+];
 
 const LESSONS: Record<string, LessonConfig> = {
   "1": {
@@ -178,18 +183,18 @@ export const CoursePlayerPage: React.FC = () => {
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          <div className="w-full min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight break-words">
                 {currentLesson.title}
               </h1>
               {currentLesson.hasQuiz && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 whitespace-nowrap">
                   <HelpCircle className="h-3 w-3" /> Mandatory MCQ
                 </span>
               )}
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
               Reactive Accelerator • {currentLesson.chapter}
             </p>
           </div>
@@ -198,44 +203,81 @@ export const CoursePlayerPage: React.FC = () => {
         <Separator />
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-6">
-            <TabsTrigger
-              value="overview"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold text-sm"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="notes"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold text-sm"
-            >
-              Personal Notes
-            </TabsTrigger>
-            <TabsTrigger
-              value="discussion"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold text-sm"
-            >
-              Discussion & Q&A
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto no-scrollbar border-b border-border">
+            <TabsList className="w-full justify-start h-auto p-0 bg-transparent gap-4 sm:gap-6 border-b-0 min-w-max">
+              <TabsTrigger
+                value="overview"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2.5 sm:pb-3 font-semibold text-xs sm:text-sm px-1 sm:px-2"
+              >
+                Overview
+              </TabsTrigger>
+              {currentLesson.hasQuiz && (
+                <TabsTrigger
+                  value="quiz"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2.5 sm:pb-3 font-semibold text-xs sm:text-sm px-1 sm:px-2"
+                >
+                  Quiz Assessment
+                </TabsTrigger>
+              )}
+              <TabsTrigger
+                value="resources"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2.5 sm:pb-3 font-semibold text-xs sm:text-sm px-1 sm:px-2"
+              >
+                Resources ({defaultResources.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="overview" className="pt-4">
-            <VideoDescription
-              hasQuiz={currentLesson.hasQuiz}
-              quizTitle={currentLesson.quizTitle}
-              quizzes={currentLesson.quizzes}
-              isQuizModalOpen={isQuizModalOpen}
-              setIsQuizModalOpen={setIsQuizModalOpen}
-              onQuizCompleted={handleQuizCompleted}
-            />
+          <TabsContent value="overview" className="pt-4 space-y-4">
+            <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground leading-relaxed">
+              <p>
+                In this introductory lecture, we explore the core building blocks of modern frontend development. You will learn how modern UI libraries like React work under the hood with virtual DOM diffing algorithms.
+              </p>
+              <h4 className="text-base font-semibold text-foreground mt-4">Key Takeaways:</h4>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Understanding declarative vs imperative UI paradigms</li>
+                <li>Component tree architecture and unidirectional data flow</li>
+                <li>Setup with Vite, TypeScript, and modern ESLint toolchains</li>
+              </ul>
+            </div>
           </TabsContent>
 
-          <TabsContent value="notes" className="pt-4">
-            <PlayerNotes currentTime={currentTime} />
-          </TabsContent>
+          {currentLesson.hasQuiz && (
+            <TabsContent value="quiz" className="pt-4 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {currentLesson.quizTitle ? `Quiz: ${currentLesson.quizTitle}` : "Complete the quiz below to validate your knowledge before proceeding to the next chapter."}
+              </p>
+              <QuizModal
+                quizzes={currentLesson.quizzes}
+                isOpen={isQuizModalOpen}
+                onOpenChange={setIsQuizModalOpen}
+                onComplete={handleQuizCompleted}
+                lessonTitle={currentLesson.quizTitle}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="discussion" className="pt-4">
-            <LessonDiscussion lessonId={lessonId} />
+          <TabsContent value="resources" className="pt-4 space-y-3">
+            {defaultResources.map((res) => (
+              <div
+                key={res.id}
+                className="flex items-center justify-between p-3 border rounded-xl bg-card hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-sky-600" />
+                  <div>
+                    <p className="text-sm font-medium">{res.title}</p>
+                    <p className="text-xs text-muted-foreground">{res.size || "1.2 MB"}</p>
+                  </div>
+                </div>
+                <Button asChild variant="ghost" size="sm" className="gap-1 text-sky-600">
+                  <a href={res.url || "#"} target="_blank" rel="noreferrer">
+                    <Download className="h-4 w-4" />
+                    Download
+                  </a>
+                </Button>
+              </div>
+            ))}
           </TabsContent>
         </Tabs>
       </div>

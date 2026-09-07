@@ -94,9 +94,9 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   return (
     <>
       {showCard && (
-        <div className="max-w-[320px] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-          <div className="flex h-28 items-center justify-center bg-gradient-to-r from-sky-500 to-indigo-600 px-6 text-center">
-            <span className="text-base font-semibold text-white">
+        <div className="w-full max-w-sm sm:max-w-[320px] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+          <div className="flex h-24 sm:h-28 items-center justify-center bg-gradient-to-r from-sky-500 to-indigo-600 px-4 sm:px-6 text-center">
+            <span className="text-sm sm:text-base font-semibold text-white line-clamp-2">
               {lessonTitle ? `${lessonTitle} Quiz` : "Lesson Quiz Set"}
             </span>
           </div>
@@ -126,13 +126,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-[550px] p-4 sm:p-6 rounded-2xl">
           <DialogHeader>
-            <div className="flex items-center justify-between border-b pb-3">
-              <DialogTitle className="text-base font-bold">
-                {lessonTitle || "Lesson MCQ Assessment"} (Question {quizIndex + 1}/{totalQuizzes})
+            <div className="flex items-center justify-between border-b pb-3 gap-2">
+              <DialogTitle className="text-sm sm:text-base font-bold truncate">
+                {lessonTitle || "Lesson MCQ Assessment"} (Q {quizIndex + 1}/{totalQuizzes})
               </DialogTitle>
-              <Badge variant="secondary">Mandatory MCQ</Badge>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">Mandatory MCQ</Badge>
             </div>
           </DialogHeader>
 
