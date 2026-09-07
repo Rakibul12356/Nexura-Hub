@@ -371,12 +371,18 @@ const initialTransactions: PlatformTransaction[] = [
 ];
 
 const initialMonthlyGrowth: MonthlyGrowthData[] = [
-  { month: "Oct", gmv: 4200, adminRevenue: 1450, instructorEarnings: 2750, students: 85, enrollments: 120 },
-  { month: "Nov", gmv: 6800, adminRevenue: 2840, instructorEarnings: 3960, students: 140, enrollments: 195 },
-  { month: "Dec", gmv: 9500, adminRevenue: 4120, instructorEarnings: 5380, students: 210, enrollments: 280 },
-  { month: "Jan", gmv: 12400, adminRevenue: 5800, instructorEarnings: 6600, students: 310, enrollments: 390 },
-  { month: "Feb", gmv: 16800, adminRevenue: 8900, instructorEarnings: 7900, students: 430, enrollments: 540 },
-  { month: "Mar", gmv: 22600, adminRevenue: 12400, instructorEarnings: 10200, students: 580, enrollments: 720 },
+  { month: "Jan", gmv: 3200, adminRevenue: 1100, instructorEarnings: 2100, students: 65, enrollments: 90 },
+  { month: "Feb", gmv: 4100, adminRevenue: 1400, instructorEarnings: 2700, students: 80, enrollments: 115 },
+  { month: "Mar", gmv: 5400, adminRevenue: 1950, instructorEarnings: 3450, students: 110, enrollments: 155 },
+  { month: "Apr", gmv: 6200, adminRevenue: 2300, instructorEarnings: 3900, students: 130, enrollments: 180 },
+  { month: "May", gmv: 7800, adminRevenue: 3100, instructorEarnings: 4700, students: 165, enrollments: 230 },
+  { month: "Jun", gmv: 9100, adminRevenue: 3800, instructorEarnings: 5300, students: 190, enrollments: 260 },
+  { month: "Jul", gmv: 10800, adminRevenue: 4600, instructorEarnings: 6200, students: 230, enrollments: 310 },
+  { month: "Aug", gmv: 12500, adminRevenue: 5500, instructorEarnings: 7000, students: 280, enrollments: 375 },
+  { month: "Sep", gmv: 14200, adminRevenue: 6400, instructorEarnings: 7800, students: 340, enrollments: 440 },
+  { month: "Oct", gmv: 16800, adminRevenue: 7900, instructorEarnings: 8900, students: 410, enrollments: 520 },
+  { month: "Nov", gmv: 19400, adminRevenue: 9500, instructorEarnings: 9900, students: 490, enrollments: 610 },
+  { month: "Dec", gmv: 23600, adminRevenue: 12800, instructorEarnings: 10800, students: 620, enrollments: 780 },
 ];
 
 const initialCategoryStats: CategoryStat[] = [

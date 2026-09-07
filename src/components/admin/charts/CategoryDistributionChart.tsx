@@ -26,8 +26,8 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionProps> = ({
   const totalRev = data.reduce((acc, curr) => acc + curr.revenue, 0);
 
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
-      <div className="flex items-center justify-between border-b pb-3">
+    <div className="rounded-xl border bg-card p-5 shadow-sm h-full flex flex-col justify-between space-y-4">
+      <div className="flex items-center justify-between border-b pb-3 shrink-0">
         <div className="flex items-center gap-2">
           <Layers className="h-5 w-5 text-primary" />
           <div>

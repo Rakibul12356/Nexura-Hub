@@ -16,6 +16,7 @@ import {
   GraduationCap,
   ArrowRight,
   Percent,
+  ShieldCheck,
 } from "lucide-react";
 
 export const AdminOverviewPage: React.FC = () => {
@@ -30,6 +31,10 @@ export const AdminOverviewPage: React.FC = () => {
   const totalAdminEarnings = courses.reduce((acc, c) => acc + c.adminEarnings, 0);
   const totalInstructorPayouts = totalGmv - totalAdminEarnings;
   const totalEnrollments = courses.reduce((acc, c) => acc + c.enrollmentsCount, 0);
+
+  const chartTotalGmv = monthlyGrowth.reduce((acc, curr) => acc + curr.gmv, 0);
+  const chartAdminRev = monthlyGrowth.reduce((acc, curr) => acc + curr.adminRevenue, 0);
+  const chartInstructorPayouts = monthlyGrowth.reduce((acc, curr) => acc + curr.instructorEarnings, 0);
 
   const recentTransactions = transactions.slice(0, 5);
 
@@ -126,23 +131,65 @@ export const AdminOverviewPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Platform Revenue & Commission Overview Cards (Separated from Chart) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-5 rounded-xl border bg-card shadow-sm hover:shadow-md transition space-y-2 border-sky-500/20 bg-sky-500/5">
+          <div className="flex items-center justify-between text-xs font-semibold text-sky-700 dark:text-sky-300 uppercase tracking-wider">
+            <span>Total Platform Volume</span>
+            <div className="h-8 w-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+              <DollarSign className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-foreground">{formatPrice(chartTotalGmv)}</div>
+          <div className="text-xs text-muted-foreground">Gross Merchandise Value</div>
+        </div>
+
+        <div className="p-5 rounded-xl border bg-card shadow-sm hover:shadow-md transition space-y-2 border-emerald-500/20 bg-emerald-500/5">
+          <div className="flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+            <span>Admin Net Revenue</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <Percent className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {formatPrice(chartAdminRev)}
+          </div>
+          <div className="text-xs text-muted-foreground">5% Platform Cut + Admin Self Courses</div>
+        </div>
+
+        <div className="p-5 rounded-xl border bg-card shadow-sm hover:shadow-md transition space-y-2 border-indigo-500/20 bg-indigo-500/5">
+          <div className="flex items-center justify-between text-xs font-semibold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">
+            <span>Instructor Payouts</span>
+            <div className="h-8 w-8 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            {formatPrice(chartInstructorPayouts)}
+          </div>
+          <div className="text-xs text-muted-foreground">95% Paid out to Creators</div>
+        </div>
+      </div>
+
       {/* Main Revenue & Growth Chart Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="lg:col-span-2 h-full">
           <RevenueChart data={monthlyGrowth} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 h-full">
           <CategoryDistributionChart data={categoryStats} />
         </div>
       </div>
 
       {/* Secondary Chart & Recent Transactions Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Student Growth Trends */}
-        <StudentGrowthChart data={monthlyGrowth} />
+        <div className="h-full">
+          <StudentGrowthChart data={monthlyGrowth} />
+        </div>
 
         {/* Live Transaction Ledger Stream */}
-        <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
+        <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4 h-full flex flex-col justify-between">
           <div className="flex items-center justify-between border-b pb-3">
             <div>
               <h3 className="font-semibold text-base">Recent Platform Sales</h3>

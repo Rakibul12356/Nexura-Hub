@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import jsPDF from "jspdf";
 import {
   Dialog,
   DialogContent,
@@ -65,40 +64,46 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
     }, 1500);
   };
 
-  const handleDownloadInvoice = () => {
-    const doc = new jsPDF();
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("NEXURA HUB - OFFICIAL INVOICE", 14, 22);
+  const handleDownloadInvoice = async () => {
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("NEXURA HUB - OFFICIAL INVOICE", 14, 22);
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Invoice Date: ${new Date().toLocaleDateString()}`, 14, 30);
-    doc.text(`Transaction ID: ${transactionId}`, 14, 36);
-    doc.text(`Payment Gateway: ${gateway.toUpperCase()}`, 14, 42);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Invoice Date: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text(`Transaction ID: ${transactionId}`, 14, 36);
+      doc.text(`Payment Gateway: ${gateway.toUpperCase()}`, 14, 42);
 
-    doc.line(14, 48, 196, 48);
+      doc.line(14, 48, 196, 48);
 
-    doc.setFont("helvetica", "bold");
-    doc.text("Item Description", 14, 56);
-    doc.text("Amount", 160, 56);
+      doc.setFont("helvetica", "bold");
+      doc.text("Item Description", 14, 56);
+      doc.text("Amount", 160, 56);
 
-    doc.setFont("helvetica", "normal");
-    doc.text(courseTitle, 14, 66);
-    doc.text(`TK ${originalPrice}`, 160, 66);
+      doc.setFont("helvetica", "normal");
+      doc.text(courseTitle, 14, 66);
+      doc.text(`TK ${originalPrice}`, 160, 66);
 
-    if (appliedDiscount > 0) {
-      doc.text("Coupon Discount", 14, 74);
-      doc.text(`- TK ${appliedDiscount}`, 160, 74);
+      if (appliedDiscount > 0) {
+        doc.text("Coupon Discount", 14, 74);
+        doc.text(`- TK ${appliedDiscount}`, 160, 74);
+      }
+
+      doc.line(14, 82, 196, 82);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Paid:", 14, 90);
+      doc.text(`TK ${finalPrice}`, 160, 90);
+
+      doc.save(`Invoice_${transactionId}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate invoice:", error);
+      toast.error("Failed to generate invoice PDF");
     }
-
-    doc.line(14, 82, 196, 82);
-
-    doc.setFont("helvetica", "bold");
-    doc.text("Total Paid:", 14, 90);
-    doc.text(`TK ${finalPrice}`, 160, 90);
-
-    doc.save(`Invoice_${transactionId}.pdf`);
   };
 
   return (

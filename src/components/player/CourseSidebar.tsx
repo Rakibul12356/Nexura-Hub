@@ -22,7 +22,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({ onLessonClick }) =
   const course = courses[0];
 
   return (
-    <div className="h-full border-r flex flex-col overflow-y-auto bg-card shadow-sm">
+    <div className="h-full flex flex-col overflow-y-auto bg-card max-h-[calc(100vh-140px)]">
       <div className="p-6 flex flex-col border-b">
         <h2 className="font-bold text-lg text-foreground line-clamp-1">
           {course?.title || "Reactive Accelerator"}

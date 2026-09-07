@@ -15,7 +15,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react-redux/es/index.js": path.resolve(__dirname, "./node_modules/react-redux/dist/react-redux.mjs"),
+      "react-redux/es": path.resolve(__dirname, "./node_modules/react-redux/dist/react-redux.mjs"),
     },
+  },
+  optimizeDeps: {
+    include: ["react-redux", "react", "react-dom", "react-router-dom"],
   },
   server: {
     port: 5173,

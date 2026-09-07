@@ -38,8 +38,8 @@ export const StudentGrowthChart: React.FC<StudentGrowthChartProps> = ({ data }) 
   const totalEnrollments = data.reduce((acc, curr) => acc + curr.enrollments, 0);
 
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+    <div className="rounded-xl border bg-card p-5 shadow-sm h-full flex flex-col justify-between space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3 shrink-0">
         <div>
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-base">Student Growth & Enrollments</h3>
@@ -53,7 +53,7 @@ export const StudentGrowthChart: React.FC<StudentGrowthChartProps> = ({ data }) 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 shrink-0">
         <div className="p-3 rounded-lg bg-sky-500/10 border border-sky-500/20">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Total Signups</span>
@@ -73,7 +73,7 @@ export const StudentGrowthChart: React.FC<StudentGrowthChartProps> = ({ data }) 
       </div>
 
       {/* Recharts BarChart */}
-      <div className="w-full h-64 pt-2">
+      <div className="w-full flex-1 min-h-[260px] pt-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />

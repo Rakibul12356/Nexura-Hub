@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
 import DynamicWatermark from "./DynamicWatermark";
 import {
   Play,
@@ -42,26 +41,35 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
     const video = videoRef.current;
     if (!video) return;
 
-    let hls: Hls | null = null;
+    let hlsInstance: any = null;
+    let isMounted = true;
 
-    if (Hls.isSupported() && src.endsWith(".m3u8")) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true,
-      });
-      hls.loadSource(src);
-      hls.attachMedia(video);
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Native Safari HLS support
-      video.src = src;
-    } else {
-      // Fallback for MP4 / standard formats
-      video.src = src;
-    }
+    const initPlayer = async () => {
+      if (src.endsWith(".m3u8")) {
+        const { default: Hls } = await import("hls.js");
+        if (!isMounted) return;
+
+        if (Hls.isSupported()) {
+          hlsInstance = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+          });
+          hlsInstance.loadSource(src);
+          hlsInstance.attachMedia(video);
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = src;
+        }
+      } else {
+        video.src = src;
+      }
+    };
+
+    initPlayer();
 
     return () => {
-      if (hls) {
-        hls.destroy();
+      isMounted = false;
+      if (hlsInstance) {
+        hlsInstance.destroy();
       }
     };
   }, [src]);

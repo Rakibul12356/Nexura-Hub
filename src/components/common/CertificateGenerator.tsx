@@ -1,7 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,9 +33,20 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
   const verifyUrl = `https://nexurahub.com/verify/${certId}`;
 
   useEffect(() => {
-    QRCode.toDataURL(verifyUrl, { width: 120, margin: 1 })
-      .then((url) => setQrCodeUrl(url))
+    let isMounted = true;
+    import("qrcode")
+      .then((QRCodeModule) => {
+        const QRCode = QRCodeModule.default || QRCodeModule;
+        return QRCode.toDataURL(verifyUrl, { width: 120, margin: 1 });
+      })
+      .then((url) => {
+        if (isMounted) setQrCodeUrl(url);
+      })
       .catch((err) => console.error("QR Code Error:", err));
+
+    return () => {
+      isMounted = false;
+    };
   }, [verifyUrl]);
 
   const handleDownloadPDF = async () => {
@@ -46,6 +54,11 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
     setIsGenerating(true);
 
     try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+
       const canvas = await html2canvas(certRef.current, {
         scale: 2,
         useCORS: true,

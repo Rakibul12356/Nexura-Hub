@@ -58,11 +58,17 @@ const AdminUsersPage = Loadable(lazy(() => import("@/pages/admin/AdminUsersPage"
 const AdminRevenuePage = Loadable(lazy(() => import("@/pages/admin/AdminRevenuePage")));
 
 import ProtectedRoute from "@/components/common/ProtectedRoute";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: (
+      <ErrorBoundary>
+        <div />
+      </ErrorBoundary>
+    ),
     children: [
       // Public / Main Layout
       {
