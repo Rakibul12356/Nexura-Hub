@@ -27,6 +27,27 @@ interface QuizModalProps {
   lessonTitle?: string;
 }
 
+const defaultQuizzes: QuizItem[] = [
+  {
+    id: "q1",
+    title: "What is the primary benefit of React Virtual DOM?",
+    options: [
+      { id: 1, label: "Batched and efficient DOM updates", isCorrect: true },
+      { id: 2, label: "Direct hardware acceleration", isCorrect: false },
+      { id: 3, label: "Runs C++ natively in browsers", isCorrect: false },
+    ],
+  },
+  {
+    id: "q2",
+    title: "How do props flow in React component hierarchy?",
+    options: [
+      { id: 1, label: "Top to bottom (Unidirectional data flow)", isCorrect: true },
+      { id: 2, label: "Bottom to top (Bidirectional flow)", isCorrect: false },
+      { id: 3, label: "Randomly across sibling components", isCorrect: false },
+    ],
+  },
+];
+
 export const QuizModal: React.FC<QuizModalProps> = ({
   quizzes = defaultQuizzes,
   isOpen,

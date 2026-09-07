@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import NotificationCenter from "@/components/common/NotificationCenter";
 
 export const PlayerLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -39,11 +40,13 @@ export const PlayerLayout: React.FC = () => {
             <Logo />
           </div>
 
-          {/* Right Side: My Courses, User Profile Dropdown, and Mobile Sidebar Menu */}
+          {/* Right Side: My Courses, Notifications, User Profile Dropdown, and Mobile Sidebar Menu */}
           <div className="flex items-center gap-2 sm:gap-3">
             <Button asChild size="sm" variant="outline" className="hidden sm:flex">
               <Link to="/account/enrolled-courses">My Courses</Link>
             </Button>
+
+            {isAuthenticated && user && <NotificationCenter />}
 
             {isAuthenticated && user ? (
               <DropdownMenu>
