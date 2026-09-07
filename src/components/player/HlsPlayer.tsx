@@ -17,6 +17,7 @@ interface HlsPlayerProps {
   src?: string;
   poster?: string;
   onTimeUpdate?: (currentTime: number) => void;
+  onEnded?: () => void;
 }
 
 const PLAYBACK_SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -25,6 +26,7 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
   src = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
   poster = "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&auto=format&fit=crop&q=80",
   onTimeUpdate,
+  onEnded,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -201,7 +203,10 @@ export const HlsPlayer: React.FC<HlsPlayerProps> = ({
             setDuration(videoRef.current.duration);
           }
         }}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          onEnded?.();
+        }}
       />
 
       {/* Video Overlay Custom Controls */}

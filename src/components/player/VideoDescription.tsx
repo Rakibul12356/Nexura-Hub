@@ -9,6 +9,11 @@ interface VideoDescriptionProps {
   description?: string;
   resources?: LessonResource[];
   quizTitle?: string;
+  quizzes?: any[];
+  isQuizModalOpen?: boolean;
+  setIsQuizModalOpen?: (open: boolean) => void;
+  onQuizCompleted?: (score: number, passed: boolean) => void;
+  hasQuiz?: boolean;
 }
 
 const defaultResources: LessonResource[] = [
@@ -20,6 +25,11 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
   description,
   resources = defaultResources,
   quizTitle,
+  quizzes,
+  isQuizModalOpen,
+  setIsQuizModalOpen,
+  onQuizCompleted,
+  hasQuiz = true,
 }) => {
   const displayResources = resources && resources.length > 0 ? resources : defaultResources;
 
@@ -33,12 +43,14 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
           >
             Lesson Description
           </TabsTrigger>
-          <TabsTrigger
-            className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold"
-            value="quiz"
-          >
-            Quiz Assessment
-          </TabsTrigger>
+          {hasQuiz && (
+            <TabsTrigger
+              className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold"
+              value="quiz"
+            >
+              Quiz Assessment
+            </TabsTrigger>
+          )}
           <TabsTrigger
             className="capitalize rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3 font-semibold"
             value="resources"
@@ -68,12 +80,20 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="quiz" className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {quizTitle ? `Quiz: ${quizTitle}` : "Complete the quiz below to validate your knowledge before proceeding to the next chapter."}
-            </p>
-            <QuizModal />
-          </TabsContent>
+          {hasQuiz && (
+            <TabsContent value="quiz" className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {quizTitle ? `Quiz: ${quizTitle}` : "Complete the quiz below to validate your knowledge before proceeding to the next chapter."}
+              </p>
+              <QuizModal
+                quizzes={quizzes}
+                isOpen={isQuizModalOpen}
+                onOpenChange={setIsQuizModalOpen}
+                onComplete={onQuizCompleted}
+                lessonTitle={quizTitle}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="resources" className="space-y-3">
             {displayResources.map((res) => (

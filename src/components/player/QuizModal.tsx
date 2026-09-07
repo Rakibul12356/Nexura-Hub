@@ -20,38 +20,34 @@ interface QuizItem {
 
 interface QuizModalProps {
   quizzes?: QuizItem[];
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onComplete?: (score: number, passed: boolean) => void;
+  showCard?: boolean;
+  lessonTitle?: string;
 }
 
-const defaultQuizzes: QuizItem[] = [
-  {
-    id: "quiz-1",
-    title: "Which hook is used for lifecycle side effects in React functional components?",
-    description: "Component lifecycle & side effects handling.",
-    options: [
-      { id: 1, label: "useEffect", isCorrect: true },
-      { id: 2, label: "useState", isCorrect: false },
-      { id: 3, label: "useReducer", isCorrect: false },
-      { id: 4, label: "useRef", isCorrect: false },
-    ],
-  },
-  {
-    id: "quiz-2",
-    title: "How does Redux Toolkit simplify state management over legacy Redux?",
-    description: "Immer integration and createSlice ergonomics.",
-    options: [
-      { id: 1, label: "Includes Immer for mutable updates inside reducers", isCorrect: true },
-      { id: 2, label: "Removes actions completely", isCorrect: false },
-      { id: 3, label: "Only works with class components", isCorrect: false },
-      { id: 4, label: "Requires external middleware for everything", isCorrect: false },
-    ],
-  },
-];
-
-export const QuizModal: React.FC<QuizModalProps> = ({ quizzes = defaultQuizzes }) => {
-  const [open, setOpen] = useState(false);
+export const QuizModal: React.FC<QuizModalProps> = ({
+  quizzes = defaultQuizzes,
+  isOpen,
+  onOpenChange,
+  onComplete,
+  showCard = true,
+  lessonTitle,
+}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | string>>({});
   const [submitted, setSubmitted] = useState(false);
+
+  const isModalOpen = isOpen !== undefined ? isOpen : internalOpen;
+  const setModalOpen = (openVal: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(openVal);
+    } else {
+      setInternalOpen(openVal);
+    }
+  };
 
   const totalQuizzes = quizzes.length;
   const currentQuiz = quizzes[quizIndex];
@@ -86,49 +82,57 @@ export const QuizModal: React.FC<QuizModalProps> = ({ quizzes = defaultQuizzes }
         score += 1;
       }
     });
+
+    const isPassed = score > 0;
     toast.success(`Quiz Completed! You scored ${score} out of ${totalQuizzes}`);
+
+    setTimeout(() => {
+      onComplete?.(score, isPassed);
+    }, 800);
   };
 
   return (
     <>
-      <div className="max-w-[300px] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        <div className="flex h-28 items-center justify-center bg-gradient-to-r from-sky-500 to-indigo-600 px-6 text-center">
-          <span className="text-base font-semibold text-white">
-            Module 1 Lesson Quiz Set
-          </span>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between text-sm font-medium">
-            <span>Total Marks:</span>
-            <Badge variant="success">10 Pts</Badge>
+      {showCard && (
+        <div className="max-w-[320px] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+          <div className="flex h-28 items-center justify-center bg-gradient-to-r from-sky-500 to-indigo-600 px-6 text-center">
+            <span className="text-base font-semibold text-white">
+              {lessonTitle ? `${lessonTitle} Quiz` : "Lesson Quiz Set"}
+            </span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Test your understanding of the concepts covered in this lesson.
-          </p>
-          <Button
-            className="w-full gap-2 border-sky-500 text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950"
-            variant="outline"
-            onClick={() => {
-              setSubmitted(false);
-              setSelectedAnswers({});
-              setQuizIndex(0);
-              setOpen(true);
-            }}
-          >
-            <HelpCircle className="h-4 w-4" />
-            Participate in Quiz
-          </Button>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between text-sm font-medium">
+              <span>Total Marks:</span>
+              <Badge variant="success">{totalQuizzes * 5} Pts</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Mandatory MCQ: Test your understanding before moving forward.
+            </p>
+            <Button
+              className="w-full gap-2 border-sky-500 text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950"
+              variant="outline"
+              onClick={() => {
+                setSubmitted(false);
+                setSelectedAnswers({});
+                setQuizIndex(0);
+                setModalOpen(true);
+              }}
+            >
+              <HelpCircle className="h-4 w-4" />
+              Participate in Quiz
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <div className="flex items-center justify-between border-b pb-3">
               <DialogTitle className="text-base font-bold">
-                Question {quizIndex + 1} of {totalQuizzes}
+                {lessonTitle || "Lesson MCQ Assessment"} (Question {quizIndex + 1}/{totalQuizzes})
               </DialogTitle>
-              <Badge variant="secondary">Single Choice</Badge>
+              <Badge variant="secondary">Mandatory MCQ</Badge>
             </div>
           </DialogHeader>
 

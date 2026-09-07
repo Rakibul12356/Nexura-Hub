@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Award, Download, CheckCircle, ShieldCheck } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
+import { cn } from "@/lib/utils";
 
 interface CertificateGeneratorProps {
   courseTitle?: string;
   completionDate?: string;
+  triggerClassName?: string;
 }
 
 export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
@@ -22,6 +24,7 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
     day: "numeric",
     year: "numeric",
   }),
+  triggerClassName,
 }) => {
   const { user } = useAppSelector((state) => state.auth);
   const certRef = useRef<HTMLDivElement | null>(null);
@@ -84,8 +87,14 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow">
-          <Award className="h-4 w-4" />
+        <Button
+          size="sm"
+          className={cn(
+            "h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm font-medium rounded-lg",
+            triggerClassName
+          )}
+        >
+          <Award className="h-3.5 w-3.5" />
           View Certificate
         </Button>
       </DialogTrigger>
