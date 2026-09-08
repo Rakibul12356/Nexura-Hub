@@ -4,6 +4,7 @@ import courseReducer from "./slices/courseSlice";
 import dashboardReducer from "./slices/dashboardSlice";
 import adminReducer from "./slices/adminSlice";
 import uiReducer from "./slices/uiSlice";
+import chatReducer from "./slices/chatSlice";
 import { baseApi } from "./api/baseApi";
 
 export const store = configureStore({
@@ -13,6 +14,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     admin: adminReducer,
     ui: uiReducer,
+    chat: chatReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

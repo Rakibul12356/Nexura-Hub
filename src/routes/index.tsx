@@ -28,6 +28,7 @@ const InstructorProfilePage = Loadable(lazy(() => import("@/pages/main/Instructo
 const EnrollSuccessPage = Loadable(lazy(() => import("@/pages/main/EnrollSuccessPage")));
 const AccountProfilePage = Loadable(lazy(() => import("@/pages/main/account/AccountProfilePage")));
 const EnrolledCoursesPage = Loadable(lazy(() => import("@/pages/main/account/EnrolledCoursesPage")));
+const ChatPage = Loadable(lazy(() => import("@/pages/main/ChatPage")));
 
 // Auth Pages (Lazy Loaded)
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/LoginPage")));
@@ -93,6 +94,10 @@ export const router = createBrowserRouter([
           {
             path: "enroll-success",
             element: <EnrollSuccessPage />,
+          },
+          {
+            path: "messages",
+            element: <ChatPage />,
           },
           // Account nested routes
           {

@@ -18,18 +18,25 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { formatPrice } from "@/lib/formatPrice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { autoJoinCourseGroupOnEnroll } from "@/store/slices/chatSlice";
 
 interface PaymentCheckoutModalProps {
+  courseId?: string | number;
   courseTitle?: string;
   originalPrice?: number;
   onSuccess?: () => void;
 }
 
 export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
+  courseId = 1,
   courseTitle = "Reactive Accelerator: Modern Full-Stack Masterclass",
   originalPrice = 4999,
   onSuccess,
 }) => {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+
   const [gateway, setGateway] = useState<"stripe" | "sslcommerz" | "shurjopay">("stripe");
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
@@ -59,6 +66,26 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
       setTransactionId(txId);
       setIsProcessing(false);
       setIsPaid(true);
+
+      dispatch(
+        autoJoinCourseGroupOnEnroll({
+          courseId,
+          courseTitle,
+          student: {
+            id: user?.id || "user-1",
+            name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
+            avatar: user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+            role: "student",
+          },
+          instructor: {
+            id: 101,
+            name: "Tapas Adhikary",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+            role: "instructor",
+          },
+        })
+      );
+
       toast.success("Payment completed successfully!");
       onSuccess?.();
     }, 1500);

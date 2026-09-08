@@ -372,6 +372,7 @@ export const CourseDetailPage: React.FC = () => {
 
               <div className="space-y-2">
                 <PaymentCheckoutModal
+                  courseId={course.id}
                   courseTitle={course.title}
                   originalPrice={course.price}
                   onSuccess={() => navigate("/enroll-success")}

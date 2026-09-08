@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { Logo } from "./logo";
-import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck, Search } from "lucide-react";
+import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck, Search, MessageSquare } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,6 +33,9 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { conversations } = useAppSelector((state) => state.chat);
+
+  const totalUnreadMessages = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -100,7 +103,20 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
 
       <nav className="flex items-center gap-3">
         {isAuthenticated && user ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/messages"
+              className="relative p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
+              title="Messages & Course Groups"
+            >
+              <MessageSquare className="h-5 w-5 text-sky-600" />
+              {totalUnreadMessages > 0 && (
+                <span className="absolute top-1 right-1 h-4 w-4 bg-sky-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
+                  {totalUnreadMessages}
+                </span>
+              )}
+            </Link>
+
             <NotificationCenter />
             <Link
               to={
