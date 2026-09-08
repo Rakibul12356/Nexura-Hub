@@ -13,14 +13,6 @@ const navLinks: NavItem[] = [
     title: "Courses",
     href: "/courses",
   },
-  {
-    title: "Instructor",
-    href: "/inst-profile",
-  },
-  {
-    title: "Pricing",
-    href: "/courses",
-  },
 ];
 
 export const MainLayout: React.FC = () => {

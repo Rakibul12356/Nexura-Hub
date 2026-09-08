@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { Logo } from "./logo";
-import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck } from "lucide-react";
+import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck, Search } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,17 +17,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "@/types/common";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
+import { setSearchQuery } from "@/store/slices/courseSlice";
 import { toast } from "react-toastify";
+import NotificationCenter from "./NotificationCenter";
 
 interface MainNavProps {
   items?: NavItem[];
   children?: React.ReactNode;
 }
 
-import NotificationCenter from "./NotificationCenter";
-
 export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -37,18 +39,26 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
     navigate("/");
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      dispatch(setSearchQuery(searchTerm.trim()));
+      navigate("/courses");
+    }
+  };
+
   return (
     <>
-      <div className="flex gap-6 lg:gap-10 items-center">
+      <div className="flex gap-4 lg:gap-8 items-center flex-1">
         <Logo />
         {items?.length ? (
-          <nav className="hidden gap-6 lg:flex items-center">
+          <nav className="hidden gap-5 md:flex items-center">
             {items.map((item, index) => (
               <Link
                 key={index}
                 to={item.disabled ? "#" : item.href}
                 className={cn(
-                  "flex items-center text-sm font-medium transition-colors hover:text-foreground/80 text-muted-foreground",
+                  "flex items-center text-sm font-medium transition-colors hover:text-foreground text-muted-foreground",
                   item.disabled && "cursor-not-allowed opacity-60"
                 )}
               >
@@ -57,6 +67,18 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
             ))}
           </nav>
         ) : null}
+
+        {/* Search Field */}
+        <form onSubmit={handleSearchSubmit} className="relative hidden sm:flex items-center max-w-xs md:max-w-sm w-full ml-2 lg:ml-4">
+          <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="search"
+            placeholder="Search courses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 text-xs sm:text-sm bg-muted/40 hover:bg-muted/60 focus:bg-background border-border/60 rounded-full w-full transition-all"
+          />
+        </form>
 
         {showMobileMenu && items && (
           <MobileNav items={items} onClose={() => setShowMobileMenu(false)}>

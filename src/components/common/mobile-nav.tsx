@@ -1,7 +1,9 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLockBody } from "@/hooks/use-lock-body";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { NavItem } from "@/types/common";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setSearchQuery } from "@/store/slices/courseSlice";
 
 interface MobileNavProps {
   items: NavItem[];
@@ -20,7 +23,19 @@ interface MobileNavProps {
 
 export const MobileNav: React.FC<MobileNavProps> = ({ items, children, onClose }) => {
   useLockBody();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      dispatch(setSearchQuery(searchTerm.trim()));
+      onClose?.();
+      navigate("/courses");
+    }
+  };
 
   return (
     <div
@@ -29,6 +44,17 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, children, onClose }
       )}
     >
       <div className="relative z-20 grid gap-6 rounded-md bg-card p-4 text-card-foreground shadow-md border">
+        <form onSubmit={handleSearch} className="relative w-full">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="search"
+            placeholder="Search courses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 text-sm bg-muted/40 rounded-full w-full"
+          />
+        </form>
+
         <nav className="grid grid-flow-row auto-rows-max text-sm gap-1">
           {items.map((item, index) => (
             <Link
