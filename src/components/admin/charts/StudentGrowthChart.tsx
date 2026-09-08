@@ -73,8 +73,8 @@ export const StudentGrowthChart: React.FC<StudentGrowthChartProps> = ({ data }) 
       </div>
 
       {/* Recharts BarChart */}
-      <div className="w-full flex-1 min-h-[260px] pt-2">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full min-h-[260px] pt-2">
+        <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
             <XAxis

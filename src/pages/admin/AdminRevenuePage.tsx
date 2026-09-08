@@ -94,7 +94,7 @@ export const AdminRevenuePage: React.FC = () => {
       </div>
 
       {/* Revenue Breakdown Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total GMV */}
         <div className="p-5 rounded-xl border bg-card shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -117,18 +117,6 @@ export const AdminRevenuePage: React.FC = () => {
           <p className="text-[11px] text-muted-foreground">From {formatPrice(instructorCourseSales)} instructor sales</p>
         </div>
 
-        {/* 100% Admin Course Sales */}
-        <div className="p-5 rounded-xl border bg-card shadow-sm space-y-2 border-purple-500/30 bg-purple-500/5">
-          <div className="flex items-center justify-between text-xs text-purple-700 dark:text-purple-300">
-            <span className="font-semibold uppercase">Admin Courses (100%)</span>
-            <ShieldCheck className="h-4 w-4 text-purple-500" />
-          </div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {formatPrice(adminDirectCourseSales)}
-          </div>
-          <p className="text-[11px] text-muted-foreground">100% platform retained revenue</p>
-        </div>
-
         {/* Total Net Admin Earnings */}
         <div className="p-5 rounded-xl border bg-card shadow-sm space-y-2 border-emerald-500/40 bg-emerald-500/10">
           <div className="flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-200">
@@ -138,7 +126,7 @@ export const AdminRevenuePage: React.FC = () => {
           <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
             {formatPrice(totalAdminEarnings)}
           </div>
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">5% Cut + Admin Courses</p>
+          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">5% Cut + Platform Profits</p>
         </div>
       </div>
 

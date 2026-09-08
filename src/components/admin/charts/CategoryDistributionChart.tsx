@@ -40,7 +40,7 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionProps> = ({
 
       {/* Recharts Pie Donut Chart */}
       <div className="w-full h-44">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={176}>
           <PieChart>
             <Pie
               data={data}

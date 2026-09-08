@@ -55,8 +55,8 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
       </div>
 
       {/* Recharts Area Chart */}
-      <div className="w-full flex-1 min-h-[380px] pt-2">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full min-h-[360px] pt-2">
+        <ResponsiveContainer width="100%" height={360}>
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
             <XAxis
