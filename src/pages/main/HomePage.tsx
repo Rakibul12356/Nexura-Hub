@@ -56,7 +56,7 @@ export const HomePage: React.FC = () => {
 
       {/* Categories Section */}
       <section id="categories" className="container space-y-6 py-12 md:py-16 lg:py-20">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <SectionTitle>Top Categories</SectionTitle>
             <p className="text-sm text-muted-foreground mt-1">
@@ -66,9 +66,9 @@ export const HomePage: React.FC = () => {
 
           <Link
             to="/courses"
-            className="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1"
+            className="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1 whitespace-nowrap shrink-0"
           >
-            Browse All <ArrowRightIcon className="h-4 w-4" />
+            Browse All <ArrowRightIcon className="h-4 w-4 shrink-0" />
           </Link>
         </div>
 
@@ -98,7 +98,7 @@ export const HomePage: React.FC = () => {
 
       {/* Courses Section */}
       <section id="courses" className="container space-y-6 py-12 md:py-16 lg:py-20 border-t">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <SectionTitle>Featured Courses</SectionTitle>
             <p className="text-sm text-muted-foreground mt-1">
@@ -108,9 +108,9 @@ export const HomePage: React.FC = () => {
 
           <Link
             to="/courses"
-            className="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1"
+            className="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1 whitespace-nowrap shrink-0"
           >
-            Browse All <ArrowRightIcon className="h-4 w-4" />
+            Browse All <ArrowRightIcon className="h-4 w-4 shrink-0" />
           </Link>
         </div>
 

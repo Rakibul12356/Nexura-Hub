@@ -75,10 +75,10 @@ export const AdminSidebar: React.FC = () => {
         ) : (
           <button
             onClick={() => dispatch(toggleSidebar())}
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition shadow-sm"
+            className="flex h-11 w-11 items-center justify-center rounded-lg hover:opacity-80 transition p-0.5"
             title="Expand Sidebar"
           >
-            <GraduationCap className="h-5 w-5" />
+            <img src="/nhLogo.png" alt="Nexura Hub" className="h-10 w-10 object-contain" />
           </button>
         )}
       </div>
