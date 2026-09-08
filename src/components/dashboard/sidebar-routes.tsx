@@ -11,6 +11,7 @@ import {
   DollarSign,
   ShieldCheck,
   GraduationCap,
+  MessageSquare,
 } from "lucide-react";
 import { SidebarItem } from "./sidebar-item";
 import { useAppSelector } from "@/store/hooks";
@@ -74,6 +75,11 @@ export const SidebarRoutes: React.FC = () => {
       label: "Courses",
       href: "/dashboard/courses",
       badge: instructorCourses.length,
+    },
+    {
+      icon: MessageSquare,
+      label: "Student Messages",
+      href: "/dashboard/messages",
     },
     {
       icon: PlusCircle,

@@ -145,9 +145,11 @@ export const chatSlice = createSlice({
         conversationId: string;
         content: string;
         sender: ChatUser;
+        imageUrl?: string;
+        replyTo?: { id: string; senderName: string; content: string };
       }>
     ) => {
-      const { conversationId, content, sender } = action.payload;
+      const { conversationId, content, sender, imageUrl, replyTo } = action.payload;
       const now = new Date();
       const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -160,6 +162,8 @@ export const chatSlice = createSlice({
         content,
         timestamp: timeString,
         isRead: true,
+        imageUrl,
+        replyTo,
       };
 
       if (!state.messages[conversationId]) {
@@ -172,6 +176,23 @@ export const chatSlice = createSlice({
       if (conv) {
         conv.lastMessage = newMessage;
         conv.updatedAt = timeString;
+      }
+    },
+
+    unsendMessage: (
+      state,
+      action: PayloadAction<{ conversationId: string; messageId: string }>
+    ) => {
+      const { conversationId, messageId } = action.payload;
+      if (state.messages[conversationId]) {
+        state.messages[conversationId] = state.messages[conversationId].filter(
+          (m) => m.id !== messageId
+        );
+        const conv = state.conversations.find((c) => c.id === conversationId);
+        if (conv) {
+          const remaining = state.messages[conversationId];
+          conv.lastMessage = remaining.length > 0 ? remaining[remaining.length - 1] : undefined;
+        }
       }
     },
 
@@ -303,6 +324,7 @@ export const chatSlice = createSlice({
 export const {
   setActiveConversation,
   sendMessage,
+  unsendMessage,
   createCourseGroup,
   autoJoinCourseGroupOnEnroll,
 } = chatSlice.actions;

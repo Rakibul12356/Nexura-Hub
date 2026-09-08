@@ -15,6 +15,12 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   isRead?: boolean;
+  imageUrl?: string;
+  replyTo?: {
+    id: string;
+    senderName: string;
+    content: string;
+  };
   attachment?: {
     type: "image" | "file" | "code";
     url: string;

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, ArrowLeft, Users, ShieldCheck } from "lucide-react";
+import { Send, ArrowLeft, Users, Image as ImageIcon, X, Reply, Trash2, CornerUpLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { sendMessage } from "@/store/slices/chatSlice";
+import { sendMessage, unsendMessage } from "@/store/slices/chatSlice";
+import { ChatMessage } from "@/types/chat";
 
 interface ChatWindowProps {
   onBack?: () => void;
@@ -18,7 +19,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
   const { user } = useAppSelector((state) => state.auth);
 
   const [inputMessage, setInputMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeConv = conversations.find((c) => c.id === activeConversationId);
   const activeMessages = activeConversationId ? messages[activeConversationId] || [] : [];
@@ -31,14 +35,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     scrollToBottom();
   }, [activeMessages]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !activeConversationId) return;
+    if ((!inputMessage.trim() && !selectedImage) || !activeConversationId) return;
+
+    const replyData = replyingTo
+      ? {
+          id: replyingTo.id,
+          senderName: replyingTo.senderName,
+          content: replyingTo.content || (replyingTo.imageUrl ? "📷 Photo" : ""),
+        }
+      : undefined;
 
     dispatch(
       sendMessage({
         conversationId: activeConversationId,
         content: inputMessage.trim(),
+        imageUrl: selectedImage || undefined,
+        replyTo: replyData,
         sender: {
           id: user?.id || "user-1",
           name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
@@ -49,6 +78,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     );
 
     setInputMessage("");
+    setSelectedImage(null);
+    setReplyingTo(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleUnsend = (messageId: string) => {
+    if (!activeConversationId) return;
+    dispatch(unsendMessage({ conversationId: activeConversationId, messageId }));
   };
 
   if (!activeConv) {
@@ -118,7 +157,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
             return (
               <div
                 key={msg.id}
-                className={cn("flex gap-3 max-w-[85%] sm:max-w-[70%]", isMe ? "ml-auto flex-row-reverse" : "")}
+                className={cn("group flex gap-3 max-w-[85%] sm:max-w-[75%]", isMe ? "ml-auto flex-row-reverse" : "")}
               >
                 {!isMe && (
                   <Avatar className="h-8 w-8 border shrink-0 mt-1">
@@ -127,7 +166,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
                   </Avatar>
                 )}
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex flex-col relative">
                   {!isMe && (
                     <div className="flex items-center gap-1.5 text-[11px] mb-1">
                       <span className="font-semibold text-foreground">{msg.senderName}</span>
@@ -139,15 +178,82 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
                     </div>
                   )}
 
-                  <div
-                    className={cn(
-                      "p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm break-words",
-                      isMe
-                        ? "bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tr-none"
-                        : "bg-card border text-card-foreground rounded-tl-none"
-                    )}
-                  >
-                    {msg.content}
+                  {/* Message Bubble + Action Buttons Container */}
+                  <div className="flex items-center gap-1 group/bubble relative">
+                    <div
+                      className={cn(
+                        "p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm break-words flex flex-col gap-2 relative",
+                        isMe
+                          ? "bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tr-none"
+                          : "bg-card border text-card-foreground rounded-tl-none"
+                      )}
+                    >
+                      {/* Replying quote preview inside bubble */}
+                      {msg.replyTo && (
+                        <div
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg border-l-4 text-xs font-normal",
+                            isMe
+                              ? "bg-black/20 border-white/60 text-white/90"
+                              : "bg-muted border-sky-500 text-muted-foreground"
+                          )}
+                        >
+                          <span className="font-semibold block text-[11px]">
+                            Replying to {msg.replyTo.senderName}
+                          </span>
+                          <span className="truncate block opacity-90 max-w-xs">
+                            {msg.replyTo.content || "📷 Image"}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Attached Image inside bubble */}
+                      {msg.imageUrl && (
+                        <div className="overflow-hidden rounded-xl max-w-xs max-h-60 border bg-black/10">
+                          <img
+                            src={msg.imageUrl}
+                            alt="attachment"
+                            className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                            onClick={() => window.open(msg.imageUrl, "_blank")}
+                          />
+                        </div>
+                      )}
+
+                      {/* Text Content */}
+                      {msg.content && <div>{msg.content}</div>}
+                    </div>
+
+                    {/* Quick Hover Action Toolbar (Messenger style) */}
+                    <div
+                      className={cn(
+                        "opacity-0 group-hover/bubble:opacity-100 transition-opacity flex items-center gap-1 px-1 shrink-0",
+                        isMe ? "flex-row-reverse" : "flex-row"
+                      )}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setReplyingTo(msg)}
+                        title="Reply"
+                        className="h-7 w-7 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+                      >
+                        <Reply className="h-3.5 w-3.5" />
+                      </Button>
+
+                      {isMe && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleUnsend(msg.id)}
+                          title="Unsend"
+                          className="h-7 w-7 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <span
@@ -166,9 +272,68 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Reply Preview Bar */}
+      {replyingTo && (
+        <div className="px-4 py-2 bg-muted/60 border-t flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 truncate">
+            <CornerUpLeft className="h-4 w-4 text-sky-600 shrink-0" />
+            <span className="truncate">
+              Replying to <strong className="text-foreground font-semibold">{replyingTo.senderName}</strong>:{" "}
+              {replyingTo.content || "📷 Image"}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setReplyingTo(null)}
+            className="h-6 w-6 rounded-full hover:bg-background shrink-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+
+      {/* Selected Image Attachment Preview Bar */}
+      {selectedImage && (
+        <div className="px-4 py-2 bg-muted/40 border-t flex items-center gap-3">
+          <div className="relative group">
+            <img src={selectedImage} alt="Preview" className="h-16 w-16 object-cover rounded-lg border shadow-sm" />
+            <button
+              type="button"
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow hover:opacity-90 transition-opacity"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <span className="text-xs text-muted-foreground">Image attached. Press send when ready.</span>
+        </div>
+      )}
+
       {/* Input Bar */}
       <div className="p-3 sm:p-4 border-t bg-card shrink-0 z-10">
         <form onSubmit={handleSend} className="flex items-center gap-2">
+          {/* File Upload Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach Image"
+            className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground hover:text-sky-600 shrink-0"
+          >
+            <ImageIcon className="h-5 w-5" />
+          </Button>
+
           <Input
             placeholder={`Message ${activeConv.name}...`}
             value={inputMessage}
@@ -179,7 +344,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
           <Button
             type="submit"
             size="icon"
-            disabled={!inputMessage.trim()}
+            disabled={!inputMessage.trim() && !selectedImage}
             className="h-11 w-11 rounded-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:opacity-90 text-white shrink-0 shadow-md transition-all"
           >
             <Send className="h-4 w-4" />
@@ -191,3 +356,4 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
 };
 
 export default ChatWindow;
+

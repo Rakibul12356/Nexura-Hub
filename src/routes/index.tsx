@@ -213,6 +213,10 @@ export const router = createBrowserRouter([
             path: "quiz-sets/:quizSetId",
             element: <EditQuizSetPage />,
           },
+          {
+            path: "messages",
+            element: <ChatPage />,
+          },
         ],
       },
 
