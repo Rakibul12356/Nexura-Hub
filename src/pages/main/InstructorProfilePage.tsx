@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { CourseProgress } from "@/components/common/course-progress";
+import { CourseCard } from "@/components/common/CourseCard";
 import { SectionTitle } from "@/components/common/section-title";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/formatPrice";
@@ -72,51 +73,7 @@ export const InstructorProfilePage: React.FC = () => {
             <SectionTitle className="mb-6">Courses by Tapas</SectionTitle>
             <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {courses.slice(0, 3).map((course) => (
-                <Link key={course.id} to={`/courses/${course.id}`}>
-                  <div className="group hover:shadow-lg transition-all overflow-hidden border bg-card text-card-foreground rounded-xl p-3 h-full flex flex-col justify-between hover:border-primary/40 duration-300">
-                    <div>
-                      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                        <img
-                          src={course.thumbnail}
-                          alt={course.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="flex flex-col pt-3">
-                        <div className="text-base font-semibold group-hover:text-sky-600 line-clamp-1 transition-colors">
-                          {course.title}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {course.category}
-                        </p>
-                        <div className="my-3 flex items-center gap-x-2 text-xs text-muted-foreground">
-                          <BookOpen className="w-3.5 h-3.5 text-sky-600" />
-                          <span>{course.totalChapters || 4} Chapters</span>
-                        </div>
-
-                        <CourseProgress
-                          size="sm"
-                          value={course.progress || 80}
-                          variant={course.progress === 100 ? "success" : undefined}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t">
-                      <span className="text-sm font-bold text-foreground">
-                        {formatPrice(course.price)}
-                      </span>
-
-                      <Button
-                        variant="ghost"
-                        className="text-xs text-sky-600 hover:text-sky-700 h-7 gap-1 font-medium"
-                      >
-                        Enroll
-                        <ArrowRight className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </Link>
+                <CourseCard key={course.id} course={course} />
               ))}
             </div>
           </div>

@@ -30,7 +30,7 @@ export const EnrolledCoursesPage: React.FC = () => {
             className="group hover:shadow-md transition-all overflow-hidden border bg-card text-card-foreground rounded-xl p-4 flex flex-col justify-between"
           >
             <div>
-              <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <div className="relative w-full h-44 sm:h-48 rounded-lg overflow-hidden bg-muted shrink-0">
                 <img
                   src={course.thumbnail}
                   alt={course.title}
