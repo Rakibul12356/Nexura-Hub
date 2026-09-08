@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Link } from "react-router-dom";
+import React, { useMemo, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { CourseProgress } from "@/components/common/course-progress";
 import { CourseCard } from "@/components/common/CourseCard";
 import {
@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setSearchQuery,
+  setSelectedCategories,
   toggleCategoryFilter,
   togglePriceFilter,
   setSortBy,
@@ -50,9 +51,22 @@ const PRICE_OPTIONS = [
 
 export const CoursesPage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const [searchParams] = useSearchParams();
   const { courses, categories, filters } = useAppSelector(
     (state) => state.courses
   );
+
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const searchParam = searchParams.get("search");
+
+    if (categoryParam) {
+      dispatch(setSelectedCategories([categoryParam]));
+    }
+    if (searchParam) {
+      dispatch(setSearchQuery(searchParam));
+    }
+  }, [searchParams, dispatch]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {

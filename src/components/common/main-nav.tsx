@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { Logo } from "./logo";
@@ -31,6 +31,7 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const handleLogout = () => {
@@ -52,19 +53,29 @@ export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
       <div className="flex gap-4 lg:gap-8 items-center flex-1">
         <Logo />
         {items?.length ? (
-          <nav className="hidden gap-5 md:flex items-center">
-            {items.map((item, index) => (
-              <Link
-                key={index}
-                to={item.disabled ? "#" : item.href}
-                className={cn(
-                  "flex items-center text-sm font-medium transition-colors hover:text-foreground text-muted-foreground",
-                  item.disabled && "cursor-not-allowed opacity-60"
-                )}
-              >
-                {item.title}
-              </Link>
-            ))}
+          <nav className="hidden gap-6 md:flex items-center">
+            {items.map((item, index) => {
+              const isActive =
+                item.href === "/"
+                  ? location.pathname === "/"
+                  : location.pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={index}
+                  to={item.disabled ? "#" : item.href}
+                  className={cn(
+                    "flex items-center text-sm font-semibold transition-all relative py-1",
+                    isActive
+                      ? "text-sky-600 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:rounded-full"
+                      : "text-muted-foreground hover:text-foreground",
+                    item.disabled && "cursor-not-allowed opacity-60"
+                  )}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
           </nav>
         ) : null}
 

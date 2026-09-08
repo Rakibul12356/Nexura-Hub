@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLockBody } from "@/hooks/use-lock-body";
 import { Search } from "lucide-react";
@@ -25,6 +25,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, children, onClose }
   useLockBody();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = React.useState("");
 
@@ -56,19 +57,29 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, children, onClose }
         </form>
 
         <nav className="grid grid-flow-row auto-rows-max text-sm gap-1">
-          {items.map((item, index) => (
-            <Link
-              key={index}
-              to={item.disabled ? "#" : item.href}
-              onClick={onClose}
-              className={cn(
-                "flex w-full items-center rounded-md p-2 text-sm font-medium hover:bg-muted transition-colors",
-                item.disabled && "cursor-not-allowed opacity-60"
-              )}
-            >
-              {item.title}
-            </Link>
-          ))}
+          {items.map((item, index) => {
+            const isActive =
+              item.href === "/"
+                ? location.pathname === "/"
+                : location.pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={index}
+                to={item.disabled ? "#" : item.href}
+                onClick={onClose}
+                className={cn(
+                  "flex w-full items-center rounded-md p-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sky-50 text-sky-600 font-semibold dark:bg-sky-950/40"
+                    : "hover:bg-muted text-foreground",
+                  item.disabled && "cursor-not-allowed opacity-60"
+                )}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
           {isAuthenticated && (
             <>
               <Link

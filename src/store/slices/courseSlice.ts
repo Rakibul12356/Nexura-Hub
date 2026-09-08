@@ -176,7 +176,7 @@ const initialState: CourseSliceState = {
   activeCourse: initialCourses[0],
   filters: {
     searchQuery: "",
-    selectedCategories: ["development"],
+    selectedCategories: [],
     selectedPrice: [],
     sortBy: "",
   },
@@ -196,6 +196,9 @@ export const courseSlice = createSlice({
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.filters.searchQuery = action.payload;
+    },
+    setSelectedCategories: (state, action: PayloadAction<string[]>) => {
+      state.filters.selectedCategories = action.payload;
     },
     toggleCategoryFilter: (state, action: PayloadAction<string>) => {
       const category = action.payload;
@@ -235,6 +238,7 @@ export const {
   setCourses,
   setActiveCourse,
   setSearchQuery,
+  setSelectedCategories,
   toggleCategoryFilter,
   togglePriceFilter,
   setSortBy,
