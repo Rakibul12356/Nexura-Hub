@@ -1,13 +1,19 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { cn } from "@/lib/utils";
+import { useAppSelector } from "@/store/hooks";
 
 export const ChatPage: React.FC = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const location = useLocation();
+  const { user } = useAppSelector((state) => state.auth);
   const isDashboard = location.pathname.startsWith("/dashboard");
+
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div

@@ -76,11 +76,15 @@ export const SidebarRoutes: React.FC = () => {
       href: "/dashboard/courses",
       badge: instructorCourses.length,
     },
-    {
-      icon: MessageSquare,
-      label: "Student Messages",
-      href: "/dashboard/messages",
-    },
+    ...(user?.role !== "admin"
+      ? [
+          {
+            icon: MessageSquare,
+            label: "Student Messages",
+            href: "/dashboard/messages",
+          },
+        ]
+      : []),
     {
       icon: PlusCircle,
       label: "Add Course",
