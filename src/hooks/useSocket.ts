@@ -7,6 +7,7 @@ import {
   receiveSocketMessage,
   setTypingStatus,
   updateUserPresence,
+  toggleMessageReaction,
 } from "@/store/slices/chatSlice";
 import { ChatMessage } from "@/types/chat";
 
@@ -51,12 +52,22 @@ export const useSocket = () => {
       dispatch(updateUserPresence(data));
     };
 
+    const handleReactionReceived = (data: {
+      conversationId: string;
+      messageId: string;
+      emoji: string;
+      userId: string | number;
+    }) => {
+      dispatch(toggleMessageReaction(data));
+    };
+
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
 
     socketService.onMessageReceived(handleMessageReceived);
     socketService.onTypingStatus(handleUserTyping);
     socketService.onUserPresence(handleUserPresence);
+    socketService.onReactionReceived(handleReactionReceived);
 
     // Sync initial connection state if already connected
     if (socket.connected) {
@@ -69,6 +80,7 @@ export const useSocket = () => {
       socketService.removeListener("receive_message");
       socketService.removeListener("user_typing");
       socketService.removeListener("user_presence");
+      socketService.removeListener("receive_reaction");
     };
   }, [user, dispatch]);
 
@@ -99,10 +111,20 @@ export const useSocket = () => {
     [user]
   );
 
+  const emitReaction = useCallback(
+    (conversationId: string, messageId: string, emoji: string) => {
+      if (user) {
+        socketService.sendReaction(conversationId, messageId, emoji, user.id);
+      }
+    },
+    [user]
+  );
+
   return {
     isConnected: isSocketConnected,
     emitSendMessage,
     emitTypingStatus,
+    emitReaction,
     joinRoom: socketService.joinRoom.bind(socketService),
     leaveRoom: socketService.leaveRoom.bind(socketService),
   };

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, ArrowLeft, Users, Image as ImageIcon, X, Reply, Trash2, CornerUpLeft } from "lucide-react";
+import { Send, ArrowLeft, Users, Image as ImageIcon, X, Reply, Trash2, CornerUpLeft, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { sendMessage, unsendMessage } from "@/store/slices/chatSlice";
+import { sendMessage, unsendMessage, toggleMessageReaction } from "@/store/slices/chatSlice";
 import { ChatMessage } from "@/types/chat";
 
 import { useSocket } from "@/hooks/useSocket";
@@ -21,7 +22,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     (state) => state.chat
   );
   const { user } = useAppSelector((state) => state.auth);
-  const { emitSendMessage, emitTypingStatus } = useSocket();
+  const { emitSendMessage, emitTypingStatus, emitReaction } = useSocket();
+
+  const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
+
+  const handleToggleReaction = (messageId: string, emoji: string) => {
+    if (!activeConversationId) return;
+    const currentUserId = user?.id || "user-1";
+    dispatch(
+      toggleMessageReaction({
+        conversationId: activeConversationId,
+        messageId,
+        emoji,
+        userId: currentUserId,
+      })
+    );
+    emitReaction(activeConversationId, messageId, emoji);
+  };
 
   const [inputMessage, setInputMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -282,6 +299,37 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
                         isMe ? "flex-row-reverse" : "flex-row"
                       )}
                     >
+                      {/* Reaction Popover Button */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            title="Add Reaction"
+                            className="h-7 w-7 rounded-full hover:bg-muted text-muted-foreground hover:text-amber-500"
+                          >
+                            <Smile className="h-3.5 w-3.5" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          side="top"
+                          align="center"
+                          className="w-auto p-1 rounded-full flex gap-1 bg-card/95 backdrop-blur-md shadow-xl border z-50"
+                        >
+                          {EMOJI_OPTIONS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleToggleReaction(msg.id, emoji)}
+                              className="h-7 w-7 hover:bg-muted/80 rounded-full flex items-center justify-center text-sm hover:scale-125 transition-transform"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+
                       <Button
                         type="button"
                         variant="ghost"
@@ -307,6 +355,38 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
                       )}
                     </div>
                   </div>
+
+                  {/* Message Reactions Badges */}
+                  {msg.reactions && msg.reactions.length > 0 && (
+                    <div
+                      className={cn(
+                        "flex flex-wrap gap-1 mt-1 px-1",
+                        isMe ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      {msg.reactions.map((r) => {
+                        const currentUserId = user?.id || "user-1";
+                        const hasMyReaction = r.users.includes(currentUserId);
+
+                        return (
+                          <button
+                            key={r.emoji}
+                            type="button"
+                            onClick={() => handleToggleReaction(msg.id, r.emoji)}
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border shadow-2xs font-medium transition-all hover:scale-105",
+                              hasMyReaction
+                                ? "bg-sky-500/15 border-sky-500/40 text-sky-600 font-semibold dark:bg-sky-950/40"
+                                : "bg-muted/60 hover:bg-muted text-muted-foreground border-border/60"
+                            )}
+                          >
+                            <span>{r.emoji}</span>
+                            <span>{r.count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   <span
                     className={cn(

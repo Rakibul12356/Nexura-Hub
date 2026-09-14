@@ -6,6 +6,12 @@ export interface ChatUser {
   isOnline?: boolean;
 }
 
+export interface ChatReaction {
+  emoji: string;
+  count: number;
+  users: (string | number)[];
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string | number;
@@ -26,6 +32,7 @@ export interface ChatMessage {
     url: string;
     name: string;
   };
+  reactions?: ChatReaction[];
 }
 
 export interface ChatConversation {

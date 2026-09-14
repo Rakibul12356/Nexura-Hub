@@ -262,6 +262,54 @@ export const chatSlice = createSlice({
       }
     },
 
+    toggleMessageReaction: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        messageId: string;
+        emoji: string;
+        userId: string | number;
+      }>
+    ) => {
+      const { conversationId, messageId, emoji, userId } = action.payload;
+      const msgList = state.messages[conversationId];
+      if (!msgList) return;
+
+      const targetMsg = msgList.find((m) => m.id === messageId);
+      if (!targetMsg) return;
+
+      if (!targetMsg.reactions) {
+        targetMsg.reactions = [];
+      }
+
+      const existingReactionIndex = targetMsg.reactions.findIndex((r) => r.emoji === emoji);
+
+      if (existingReactionIndex > -1) {
+        const reaction = targetMsg.reactions[existingReactionIndex];
+        const userIndex = reaction.users.indexOf(userId);
+
+        if (userIndex > -1) {
+          // Remove user reaction
+          reaction.users.splice(userIndex, 1);
+          reaction.count -= 1;
+          if (reaction.count <= 0) {
+            targetMsg.reactions.splice(existingReactionIndex, 1);
+          }
+        } else {
+          // Add user reaction
+          reaction.users.push(userId);
+          reaction.count += 1;
+        }
+      } else {
+        // Add new emoji reaction group
+        targetMsg.reactions.push({
+          emoji,
+          count: 1,
+          users: [userId],
+        });
+      }
+    },
+
     createCourseGroup: (
       state,
       action: PayloadAction<{
@@ -395,6 +443,7 @@ export const {
   setActiveConversation,
   sendMessage,
   unsendMessage,
+  toggleMessageReaction,
   createCourseGroup,
   autoJoinCourseGroupOnEnroll,
 } = chatSlice.actions;

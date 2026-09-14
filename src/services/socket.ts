@@ -95,6 +95,26 @@ class SocketService {
   }
 
   /**
+   * Emit emoji reaction on a message
+   */
+  public sendReaction(conversationId: string, messageId: string, emoji: string, userId: string | number) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit("send_reaction", { conversationId, messageId, emoji, userId });
+    }
+  }
+
+  /**
+   * Listen for incoming message reactions
+   */
+  public onReactionReceived(
+    callback: (data: { conversationId: string; messageId: string; emoji: string; userId: string | number }) => void
+  ) {
+    if (this.socket) {
+      this.socket.on("receive_reaction", callback);
+    }
+  }
+
+  /**
    * Listen for incoming messages
    */
   public onMessageReceived(callback: (data: { conversationId: string; message: ChatMessage }) => void) {
