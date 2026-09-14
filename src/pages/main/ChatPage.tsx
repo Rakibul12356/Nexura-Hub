@@ -4,12 +4,16 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { cn } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
+import { useSocket } from "@/hooks/useSocket";
 
 export const ChatPage: React.FC = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const location = useLocation();
   const { user } = useAppSelector((state) => state.auth);
   const isDashboard = location.pathname.startsWith("/dashboard");
+
+  // Initialize real-time WebSocket connection
+  useSocket();
 
   if (user?.role === "admin") {
     return <Navigate to="/admin" replace />;

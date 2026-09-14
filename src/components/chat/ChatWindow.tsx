@@ -9,18 +9,24 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { sendMessage, unsendMessage } from "@/store/slices/chatSlice";
 import { ChatMessage } from "@/types/chat";
 
+import { useSocket } from "@/hooks/useSocket";
+
 interface ChatWindowProps {
   onBack?: () => void;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
   const dispatch = useAppDispatch();
-  const { conversations, messages, activeConversationId } = useAppSelector((state) => state.chat);
+  const { conversations, messages, activeConversationId, isSocketConnected, typingUsers } = useAppSelector(
+    (state) => state.chat
+  );
   const { user } = useAppSelector((state) => state.auth);
+  const { emitSendMessage, emitTypingStatus } = useSocket();
 
   const [inputMessage, setInputMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,6 +56,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMessage(e.target.value);
+    if (!activeConversationId) return;
+
+    emitTypingStatus(activeConversationId, true);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      emitTypingStatus(activeConversationId, false);
+    }, 2000);
+  };
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if ((!inputMessage.trim() && !selectedImage) || !activeConversationId) return;
@@ -62,20 +83,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
         }
       : undefined;
 
+    const senderObj = {
+      id: user?.id || "user-1",
+      name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
+      avatar: user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      role: (user?.role as any) || "student",
+    };
+
+    const socketMessageData: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      senderId: senderObj.id,
+      senderName: senderObj.name,
+      senderAvatar: senderObj.avatar,
+      senderRole: senderObj.role,
+      content: inputMessage.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isRead: true,
+      imageUrl: selectedImage || undefined,
+      replyTo: replyData,
+    };
+
     dispatch(
       sendMessage({
         conversationId: activeConversationId,
         content: inputMessage.trim(),
         imageUrl: selectedImage || undefined,
         replyTo: replyData,
-        sender: {
-          id: user?.id || "user-1",
-          name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
-          avatar: user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-          role: (user?.role as any) || "student",
-        },
+        sender: senderObj,
       })
     );
+
+    // Emit via WebSocket Client
+    emitSendMessage(activeConversationId, socketMessageData);
+    emitTypingStatus(activeConversationId, false);
 
     setInputMessage("");
     setSelectedImage(null);
@@ -89,6 +129,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     if (!activeConversationId) return;
     dispatch(unsendMessage({ conversationId: activeConversationId, messageId }));
   };
+
+  const currentTypingUsers = (activeConversationId ? typingUsers[activeConversationId] : []) || [];
 
   if (!activeConv) {
     return (
@@ -130,6 +172,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
               ) : (
                 <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-600 font-semibold shrink-0">
                   1-on-1 Direct
+                </Badge>
+              )}
+
+              {isSocketConnected ? (
+                <Badge className="text-[9px] bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 font-semibold shrink-0">
+                  ● Live WS
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[9px] text-muted-foreground shrink-0">
+                  ○ Fallback Mode
                 </Badge>
               )}
             </div>
@@ -269,6 +321,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
             );
           })
         )}
+        {currentTypingUsers.length > 0 && (
+          <div className="text-xs text-sky-600 dark:text-sky-400 font-medium italic flex items-center gap-2 animate-pulse pl-2 py-1">
+            <span className="h-2 w-2 rounded-full bg-sky-500 animate-ping" />
+            {currentTypingUsers.map((u) => u.userName).join(", ")}{" "}
+            {currentTypingUsers.length === 1 ? "is typing..." : "are typing..."}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -337,7 +396,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
           <Input
             placeholder={`Message ${activeConv.name}...`}
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            onChange={handleInputChange}
             className="flex-1 h-11 text-sm bg-muted/40 focus:bg-background rounded-full px-5 border-muted focus-visible:ring-2 focus-visible:ring-sky-500"
           />
 

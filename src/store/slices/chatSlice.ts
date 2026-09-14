@@ -6,6 +6,8 @@ interface ChatState {
   messages: Record<string, ChatMessage[]>;
   activeConversationId: string | null;
   isLoading: boolean;
+  isSocketConnected: boolean;
+  typingUsers: Record<string, { userId: string | number; userName: string }[]>;
 }
 
 const initialConversations: ChatConversation[] = [
@@ -123,12 +125,76 @@ const initialState: ChatState = {
   messages: initialMessages,
   activeConversationId: "group-1",
   isLoading: false,
+  isSocketConnected: false,
+  typingUsers: {},
 };
 
 export const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    setSocketConnected: (state, action: PayloadAction<boolean>) => {
+      state.isSocketConnected = action.payload;
+    },
+
+    receiveSocketMessage: (
+      state,
+      action: PayloadAction<{ conversationId: string; message: ChatMessage }>
+    ) => {
+      const { conversationId, message } = action.payload;
+      if (!state.messages[conversationId]) {
+        state.messages[conversationId] = [];
+      }
+      if (!state.messages[conversationId].some((m) => m.id === message.id)) {
+        state.messages[conversationId].push(message);
+        const conv = state.conversations.find((c) => c.id === conversationId);
+        if (conv) {
+          conv.lastMessage = message;
+          conv.updatedAt = message.timestamp || "Just now";
+          if (state.activeConversationId !== conversationId) {
+            conv.unreadCount += 1;
+          }
+        }
+      }
+    },
+
+    setTypingStatus: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        userId: string | number;
+        userName: string;
+        isTyping: boolean;
+      }>
+    ) => {
+      const { conversationId, userId, userName, isTyping } = action.payload;
+      if (!state.typingUsers[conversationId]) {
+        state.typingUsers[conversationId] = [];
+      }
+      if (isTyping) {
+        if (!state.typingUsers[conversationId].some((u) => u.userId === userId)) {
+          state.typingUsers[conversationId].push({ userId, userName });
+        }
+      } else {
+        state.typingUsers[conversationId] = state.typingUsers[conversationId].filter(
+          (u) => u.userId !== userId
+        );
+      }
+    },
+
+    updateUserPresence: (
+      state,
+      action: PayloadAction<{ userId: string | number; isOnline: boolean }>
+    ) => {
+      const { userId, isOnline } = action.payload;
+      state.conversations.forEach((conv) => {
+        conv.members.forEach((member) => {
+          if (member.id === userId) {
+            member.isOnline = isOnline;
+          }
+        });
+      });
+    },
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload;
       if (action.payload) {
@@ -322,6 +388,10 @@ export const chatSlice = createSlice({
 });
 
 export const {
+  setSocketConnected,
+  receiveSocketMessage,
+  setTypingStatus,
+  updateUserPresence,
   setActiveConversation,
   sendMessage,
   unsendMessage,
