@@ -1,6 +1,6 @@
 # 🎓 Nexura Hub
 
-A modern, responsive, and full-featured **Learning Management System (LMS)** web application built with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS**, and **Redux Toolkit (RTK Query)**.
+A modern, responsive, and full-featured **Learning Management System (LMS)** web application built with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS**, **Axios**, **TanStack Query (v5)**, and **Zustand**.
 
 ---
 
@@ -12,9 +12,11 @@ A modern, responsive, and full-featured **Learning Management System (LMS)** web
 
 ## ✨ Key Features & Architecture Upgrades
 
-- **⚛️ React 19 & Concurrent Features:** Fully upgraded to **React 19** and **react-redux v9** for superior rendering performance and concurrent features.
-- **🔒 HttpOnly Cookie Security:** Secure HttpOnly, `SameSite=Strict` cookie authentication architecture (`credentials: 'include'`) replacing vulnerable client-side raw token storage.
-- **⚡ RTK Query Integration:** Automatic server state caching, tag invalidation, background refetching, and pagination powered by `@reduxjs/toolkit/query/react`.
+- **⚛️ React 19 & Concurrent Features:** Fully upgraded to **React 19** for superior rendering performance and modern concurrent features.
+- **⚡ TanStack Query v5 (React Query):** Industry-standard server state management featuring automatic data caching, background refetching, query invalidation, deduplication, and zero-boilerplate data fetching.
+- **🐻 Zustand Global Client State:** Ultra-lightweight (~1KB) and fast state management using Zustand stores ([`useAuthStore`](file:///c:/Users/rakib/Nexura-Hub/src/store/useAuthStore.ts), [`useUiStore`](file:///c:/Users/rakib/Nexura-Hub/src/store/useUiStore.ts), [`useChatStore`](file:///c:/Users/rakib/Nexura-Hub/src/store/useChatStore.ts)) for clean separation of concerns.
+- **🌐 Axios Interceptors & Auth Security:** Custom Axios instance with automatic JWT Bearer token attachment, cookie session management, and global error handling interceptors.
+- **💬 Live WebSocket Chat & Socket.io:** Real-time 1-on-1 direct messaging, course discussion groups, typing indicators, user presence badges, and message emoji reactions powered by `socket.io-client`.
 - **🛡️ Flicker-Free RBAC Route Guards:** Robust `<ProtectedRoute requiredRoles={['admin', 'instructor', 'student']}>` wrapper preventing UI flicker during state hydration on page hard refresh.
 - **🎥 HLS Streaming & Anti-Piracy Watermark:** Adaptive Bitrate HLS (`.m3u8` via `hls.js`) video player with floating randomized anti-piracy student email/ID watermark, speed controls (0.5x–2x), Picture-in-Picture (PiP), keyboard shortcuts (Space, J/K/L, F, M), and timed personal notes/bookmarks.
 - **🎓 Automated PDF Certificate Generator:** Verifiable completion certificate generator with Student Name, Course Title, Completion Date, Certificate ID, and embedded verification QR Code powered by HTML5 Canvas & jsPDF.
@@ -93,7 +95,10 @@ Nexura Hub features **3 distinct user roles** with Role-Based Access Control (RB
 | **Frontend Framework** | [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/) |
 | **Build Tool** | [Vite 5](https://vitejs.dev/) |
 | **Styling** | [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) |
-| **State Management** | [Redux Toolkit 2.5](https://redux-toolkit.js.org/) + `react-redux v9` + **RTK Query** |
+| **Server State Management** | [TanStack Query v5](https://tanstack.com/query/latest) (React Query) |
+| **Client State Management** | [Zustand 5](https://github.com/pmndrs/zustand) |
+| **HTTP Client & Security** | [Axios](https://axios-http.com/) (Interceptors, Token Cookies) |
+| **Real-time WebSockets** | [Socket.io Client](https://socket.io/) |
 | **Routing** | [React Router v7](https://reactrouter.com/) |
 | **Video Streaming** | [hls.js](https://github.com/video-dev/hls.js/) (HLS Protocol) |
 | **PDF & QR Generation** | [jsPDF](https://github.com/parallax/jsPDF) + [html2canvas](https://html2canvas.hertzen.com/) + [QRCode](https://github.com/soldair/node-qrcode) |
@@ -102,7 +107,6 @@ Nexura Hub features **3 distinct user roles** with Role-Based Access Control (RB
 | **CI/CD Pipeline** | GitHub Actions (`.github/workflows/ci.yml`) |
 | **Icons & UI** | [Lucide React](https://lucide.dev/) + [Recharts](https://recharts.org/) |
 | **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) |
-| **HTTP & Security** | [Axios](https://axios-http.com/) (HttpOnly Cookie Enabled) |
 | **Deployment** | [Vercel](https://vercel.com/) |
 
 ---
@@ -149,30 +153,38 @@ Nexura-Hub/
 ├── vitest.config.ts                  # Vitest runner configuration
 ├── playwright.config.ts              # Playwright E2E configuration
 ├── vite.config.ts                    # Vite configuration
-├── package.json                      # Dependencies (React 19, Redux 9, Vitest, etc.)
+├── package.json                      # Dependencies (React 19, TanStack Query, Zustand, etc.)
 │
 └── src/
     ├── main.tsx                      # React 19 app entry point
-    ├── App.tsx                       # Redux Provider & RouterProvider
+    ├── App.tsx                       # QueryClientProvider & RouterProvider
     │
-    ├── api/                          # Axios instance with HttpOnly cookie support
-    │   └── axiosInstance.ts          # Configured Axios instance (withCredentials: true)
+    ├── api/                          # Axios instance with cookie & token interceptors
+    │   └── axiosInstance.ts          # Configured Axios instance with interceptors
     │
     ├── components/                   # UI Components
     │   ├── admin/                    # Admin components & CouponManager
-    │   ├── common/                   # Shared UI, ProtectedRoute, CertificateGenerator, PaymentCheckoutModal, NotificationCenter, ErrorBoundary
+    │   ├── chat/                     # Real-time ChatWindow & ChatSidebar
+    │   ├── common/                   # Shared UI, ProtectedRoute, CertificateGenerator, PaymentCheckoutModal, NotificationCenter
     │   ├── dashboard/                # Instructor Studio dashboard components
     │   ├── player/                   # HlsPlayer, DynamicWatermark, PlayerNotes, LessonDiscussion
     │   └── ui/                       # Radix UI primitives
     │
-    ├── lib/                          # Utilities (exportToCsv, sentry, formatPrice, confirmDelete)
-    ├── pages/                        # Route pages (Auth, Main, Instructor, Admin, Player)
-    ├── routes/                       # React Router v7 routes with ProtectedRoute RBAC guards
+    ├── hooks/                        # Custom React Hooks
+    │   ├── queries/                  # TanStack Query custom hooks (useAuthQuery, useCoursesQuery, useDashboardQuery)
+    │   └── useSocket.ts              # WebSocket real-time chat listener hook
     │
-    ├── store/                        # Centralized Redux Store & RTK Query
-    │   ├── baseApi.ts                # RTK Query base setup with credentials: 'include'
-    │   ├── api/                      # RTK Query endpoints (courseApi, quizApi, discussionApi, couponApi)
-    │   └── slices/                   # Redux slices (authSlice, courseSlice, adminSlice, etc.)
+    ├── lib/                          # Utilities & Query Client
+    │   └── queryClient.ts            # Global TanStack QueryClient setup
+    │
+    ├── pages/                        # Route pages (Auth, Main, Instructor, Admin, Player, Chat)
+    ├── routes/                       # React Router v7 routes with ProtectedRoute RBAC guards
+    ├── services/                     # Axios API Service functions (auth, courses, dashboard)
+    │
+    ├── store/                        # Zustand Global Client State Stores
+    │   ├── useAuthStore.ts           # Auth user session state
+    │   ├── useUiStore.ts             # Theme, Sidebar collapse, and UI state
+    │   └── useChatStore.ts           # Socket chat conversations & messages
     │
     ├── test/                         # Vitest unit & integration test files
     └── tests/e2e/                    # Playwright E2E test specs
@@ -193,6 +205,7 @@ Nexura-Hub/
 | `/account/enrolled-courses` | EnrolledCoursesPage | Protected (Student) |
 | `/login` | LoginPage | Guest |
 | `/register` | RegisterPage | Guest |
+| `/messages` | ChatPage | Protected (Student/Instructor) |
 | `/player/:courseSlug/:lessonId` | CoursePlayerPage | Protected (Student) |
 | `/dashboard` | DashboardOverviewPage | Protected (Instructor/Admin) |
 | `/dashboard/courses` | DashboardCoursesPage | Protected (Instructor/Admin) |
