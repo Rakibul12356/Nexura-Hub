@@ -4,6 +4,8 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 import { User, LoginCredentials, RegisterCredentials } from "@/types/auth";
 import { Course, Module, Lesson, QuizSet, Category, EnrolledCourse } from "@/types/course";
 import { DashboardStats, LiveClass, StudentEnrollment } from "@/types/dashboard";
+import { courseService } from "@/services/courseService";
+import { dashboardService } from "@/services/dashboardService";
 
 /**
  * ---------------------------------------------------------
@@ -125,8 +127,8 @@ export const authApi = {
 
 // 2. Course API Service
 export const courseApi = {
-  getCourses: (params?: Record<string, any>) => apiService.get<Course[]>(API_ENDPOINTS.COURSES.LIST, params),
-  getCourseById: (id: string | number) => apiService.get<Course>(API_ENDPOINTS.COURSES.DETAILS(id)),
+  getCourses: (params?: Record<string, any>) => courseService.getCourses(),
+  getCourseById: (id: string | number) => courseService.getCourseById(id),
   createCourse: (data: Partial<Course>) => apiService.post<Course>(API_ENDPOINTS.COURSES.CREATE, data),
   updateCourse: (id: string | number, data: Partial<Course>) =>
     apiService.put<Course>(API_ENDPOINTS.COURSES.UPDATE(id), data),
@@ -177,11 +179,17 @@ export const quizApi = {
 };
 
 // 6. Category API Service
-export const categoryApi = apiService.createCrudService<Category>(API_ENDPOINTS.CATEGORIES.LIST);
+export const categoryApi = {
+  getAll: () => courseService.getCategories(),
+  getById: (id: string | number) => apiService.get<Category>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`),
+  create: (data: Partial<Category>) => apiService.post<Category>(API_ENDPOINTS.CATEGORIES.LIST, data),
+  update: (id: string | number, data: Partial<Category>) => apiService.put<Category>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`, data),
+  delete: (id: string | number) => apiService.delete<{ success: boolean; id: string | number }>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`),
+};
 
 // 7. Enrollment API Service
 export const enrollmentApi = {
-  getMyEnrolledCourses: () => apiService.get<EnrolledCourse[]>(API_ENDPOINTS.ENROLLMENTS.MY_COURSES),
+  getMyEnrolledCourses: () => courseService.getEnrolledCourses(),
   enrollInCourse: (courseId: string | number) =>
     apiService.post<EnrolledCourse>(API_ENDPOINTS.ENROLLMENTS.ENROLL, { courseId }),
   checkEnrollmentStatus: (courseId: string | number) =>
@@ -190,11 +198,11 @@ export const enrollmentApi = {
 
 // 8. Dashboard & Analytics API Service
 export const dashboardApi = {
-  getStats: () => apiService.get<DashboardStats>(API_ENDPOINTS.DASHBOARD.STATS),
-  getInstructorCourses: () => apiService.get<Course[]>(API_ENDPOINTS.DASHBOARD.INSTRUCTOR_COURSES),
-  getLiveClasses: () => apiService.get<LiveClass[]>(API_ENDPOINTS.DASHBOARD.LIVE_CLASSES),
-  getQuizSets: () => apiService.get<QuizSet[]>(API_ENDPOINTS.DASHBOARD.QUIZ_SETS),
-  getEnrollments: () => apiService.get<StudentEnrollment[]>(API_ENDPOINTS.DASHBOARD.ENROLLMENTS),
+  getStats: () => dashboardService.getStats(),
+  getInstructorCourses: () => dashboardService.getInstructorCourses(),
+  getLiveClasses: () => dashboardService.getLiveClasses(),
+  getQuizSets: () => dashboardService.getQuizSets(),
+  getEnrollments: () => dashboardService.getEnrollments(),
 };
 
 // 9. Media & File Upload API Service

@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 export const AdminSidebar: React.FC = () => {
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
-  const { data: courses = [] } = useCoursesQuery();
+  const { data: rawCourses } = useCoursesQuery();
+  const courses = Array.isArray(rawCourses) ? rawCourses : [];
 
-  const pendingCourses = courses.filter((c) => !c.isPublished).length;
+  const pendingCourses = courses.filter((c) => !c?.isPublished).length;
 
   const routes = [
     {

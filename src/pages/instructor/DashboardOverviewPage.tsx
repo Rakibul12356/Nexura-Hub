@@ -14,12 +14,20 @@ import {
   BookA,
   ArrowRight,
 } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
+import {
+  useDashboardStatsQuery,
+  useStudentEnrollmentsQuery,
+  useInstructorCoursesQuery,
+} from "@/hooks/queries/useDashboardQuery";
 
 export const DashboardOverviewPage: React.FC = () => {
-  const { stats, enrollments, instructorCourses } = useAppSelector(
-    (state) => state.dashboard
-  );
+  const { data: stats, isLoading: isStatsLoading } = useDashboardStatsQuery();
+  const { data: enrollments = [] } = useStudentEnrollmentsQuery();
+  const { data: instructorCourses = [] } = useInstructorCoursesQuery();
+
+  const totalEnrollments = stats?.totalEnrollments ?? 0;
+  const totalRevenue = stats?.totalRevenue ?? 0;
+  const totalStudents = stats?.totalStudents ?? 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -81,7 +89,9 @@ export const DashboardOverviewPage: React.FC = () => {
             <Users className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEnrollments}</div>
+            <div className="text-2xl font-bold">
+              {isStatsLoading ? "..." : totalEnrollments}
+            </div>
             <p className="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
               <TrendingUp className="h-3.5 w-3.5" /> +12% from last month
             </p>
@@ -96,7 +106,9 @@ export const DashboardOverviewPage: React.FC = () => {
             <DollarSign className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatPrice(stats.totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {isStatsLoading ? "..." : formatPrice(totalRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Lifetime gross earnings
             </p>
@@ -111,7 +123,9 @@ export const DashboardOverviewPage: React.FC = () => {
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalStudents}</div>
+            <div className="text-2xl font-bold">
+              {isStatsLoading ? "..." : totalStudents}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Unique enrolled students
             </p>
@@ -178,7 +192,7 @@ export const DashboardOverviewPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="success" className="text-xs">
+                      <Badge variant="default" className="text-xs capitalize">
                         {item.paymentStatus}
                       </Badge>
                     </td>

@@ -49,11 +49,21 @@ export const initialEnrolledCourses: EnrolledCourse[] = [
   },
 ];
 
+function safeArray<T>(data: any, fallback: T[]): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.courses)) return data.courses;
+  if (data && Array.isArray(data.categories)) return data.categories;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.result)) return data.result;
+  if (data && Array.isArray(data.items)) return data.items;
+  return fallback;
+}
+
 export const courseService = {
   async getCourses(): Promise<Course[]> {
     try {
       const response = await apiClient.get("/courses");
-      return response.data;
+      return safeArray(response.data, initialCourses);
     } catch {
       return initialCourses;
     }
@@ -62,7 +72,7 @@ export const courseService = {
   async getCourseById(id: string | number): Promise<Course | undefined> {
     try {
       const response = await apiClient.get(`/courses/${id}`);
-      return response.data;
+      return response.data?.course || response.data?.data || response.data;
     } catch {
       return initialCourses.find((c) => String(c.id) === String(id)) || initialCourses[0];
     }
@@ -71,7 +81,7 @@ export const courseService = {
   async getCategories(): Promise<Category[]> {
     try {
       const response = await apiClient.get("/categories");
-      return response.data;
+      return safeArray(response.data, initialCategories);
     } catch {
       return initialCategories;
     }
@@ -80,7 +90,7 @@ export const courseService = {
   async getEnrolledCourses(): Promise<EnrolledCourse[]> {
     try {
       const response = await apiClient.get("/user/enrolled-courses");
-      return response.data;
+      return safeArray(response.data, initialEnrolledCourses);
     } catch {
       return initialEnrolledCourses;
     }

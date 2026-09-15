@@ -21,12 +21,15 @@ export const SidebarRoutes: React.FC = () => {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
 
-  const { data: instructorCourses = [] } = useInstructorCoursesQuery();
-  const { data: allCourses = [] } = useCoursesQuery();
+  const { data: rawInstructorCourses } = useInstructorCoursesQuery();
+  const { data: rawAllCourses } = useCoursesQuery();
+
+  const instructorCourses = Array.isArray(rawInstructorCourses) ? rawInstructorCourses : [];
+  const allCourses = Array.isArray(rawAllCourses) ? rawAllCourses : [];
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  const pendingCourses = allCourses.filter((c) => !c.isPublished).length;
+  const pendingCourses = allCourses.filter((c) => !c?.isPublished).length;
 
   const adminRoutes = [
     {

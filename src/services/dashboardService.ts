@@ -39,11 +39,31 @@ export const initialEnrollments: StudentEnrollment[] = [
   },
 ];
 
+function safeArray<T>(data: any, fallback: T[]): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.courses)) return data.courses;
+  if (data && Array.isArray(data.lives)) return data.lives;
+  if (data && Array.isArray(data.quizSets)) return data.quizSets;
+  if (data && Array.isArray(data.enrollments)) return data.enrollments;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.result)) return data.result;
+  if (data && Array.isArray(data.items)) return data.items;
+  return fallback;
+}
+
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
     try {
       const response = await apiClient.get("/dashboard/stats");
-      return response.data;
+      if (response.data && typeof response.data === "object" && !Array.isArray(response.data)) {
+        return response.data;
+      }
+      return {
+        totalCourses: 15,
+        totalEnrollments: 1000,
+        totalRevenue: 12000,
+        totalStudents: 850,
+      };
     } catch {
       return {
         totalCourses: 15,
@@ -57,7 +77,7 @@ export const dashboardService = {
   async getInstructorCourses(): Promise<Course[]> {
     try {
       const response = await apiClient.get("/dashboard/courses");
-      return response.data;
+      return safeArray(response.data, initialCourses);
     } catch {
       return initialCourses;
     }
@@ -66,7 +86,7 @@ export const dashboardService = {
   async getLiveClasses(): Promise<LiveClass[]> {
     try {
       const response = await apiClient.get("/dashboard/lives");
-      return response.data;
+      return safeArray(response.data, initialLives);
     } catch {
       return initialLives;
     }
@@ -75,7 +95,7 @@ export const dashboardService = {
   async getQuizSets(): Promise<QuizSet[]> {
     try {
       const response = await apiClient.get("/dashboard/quiz-sets");
-      return response.data;
+      return safeArray(response.data, initialQuizSets);
     } catch {
       return initialQuizSets;
     }
@@ -84,7 +104,7 @@ export const dashboardService = {
   async getEnrollments(): Promise<StudentEnrollment[]> {
     try {
       const response = await apiClient.get("/dashboard/enrollments");
-      return response.data;
+      return safeArray(response.data, initialEnrollments);
     } catch {
       return initialEnrollments;
     }
