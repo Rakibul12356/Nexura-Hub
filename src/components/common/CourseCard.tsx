@@ -12,7 +12,7 @@ interface CourseCardProps {
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   return (
-    <Link to={`/courses/${course.id}`} className="block h-full">
+    <Link to={`/courses/${course.slug || course.id}`} className="block h-full">
       <div className="group hover:shadow-lg transition-all overflow-hidden border bg-card text-card-foreground rounded-xl p-3 h-full flex flex-col justify-between hover:border-primary/40 hover:-translate-y-1 duration-300">
         <div>
           {/* Thumbnail Container - Fixed Height for 100% Uniform Image Sizes */}

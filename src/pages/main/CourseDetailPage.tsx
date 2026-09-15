@@ -27,20 +27,44 @@ import {
   Lock,
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
+import { useCourseDetailQuery } from "@/hooks/queries/useCoursesQuery";
 import { toast } from "react-toastify";
 
 export const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { courses } = useAppSelector((state) => state.courses);
+  const { data: fetchedCourse, isLoading } = useCourseDetailQuery(courseId || "");
+  const { courses } = useAppSelector((state) => state.courses || {});
+  const safeCourses = Array.isArray(courses) ? courses : [];
 
   const course =
-    courses.find((c) => String(c.id) === String(courseId)) || courses[0];
+    fetchedCourse ||
+    safeCourses.find((c) => String(c.id) === String(courseId) || c.slug === courseId);
 
   const handleEnroll = () => {
     toast.success("Enrolled successfully!");
     navigate("/enroll-success");
   };
+
+  if (isLoading && !course) {
+    return (
+      <div className="container py-20 text-center text-muted-foreground">
+        Loading course details...
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="container py-20 text-center space-y-4">
+        <h2 className="text-2xl font-bold text-foreground">Course Not Found</h2>
+        <p className="text-muted-foreground">The requested course is currently unavailable or loading.</p>
+        <Button onClick={() => navigate("/courses")} variant="outline" className="mt-2">
+          Browse Available Courses
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-16">

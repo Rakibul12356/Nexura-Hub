@@ -10,7 +10,9 @@ import { BookOpen, ArrowRight, ArrowRightIcon, Sparkles } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 
 export const HomePage: React.FC = () => {
-  const { categories, courses } = useAppSelector((state) => state.courses);
+  const { categories, courses } = useAppSelector((state) => state.courses || {});
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeCourses = Array.isArray(courses) ? courses : [];
 
   return (
     <>
@@ -74,7 +76,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="mx-auto grid justify-center gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {categories.map((category) => (
+          {safeCategories.map((category) => (
             <Link
               to={`/courses?category=${category.value}`}
               key={category.id}
@@ -116,7 +118,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {courses.map((course) => (
+          {safeCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>

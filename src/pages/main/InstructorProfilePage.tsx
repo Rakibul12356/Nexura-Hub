@@ -16,7 +16,8 @@ import {
 import { useAppSelector } from "@/store/hooks";
 
 export const InstructorProfilePage: React.FC = () => {
-  const { courses } = useAppSelector((state) => state.courses);
+  const { courses } = useAppSelector((state) => state.courses || {});
+  const safeCourses = Array.isArray(courses) ? courses : [];
 
   return (
     <section id="instructor-profile" className="space-y-6 py-8 lg:py-12 container">
@@ -72,7 +73,7 @@ export const InstructorProfilePage: React.FC = () => {
           <div>
             <SectionTitle className="mb-6">Courses by Tapas</SectionTitle>
             <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {courses.slice(0, 3).map((course) => (
+              {safeCourses.slice(0, 3).map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
             </div>

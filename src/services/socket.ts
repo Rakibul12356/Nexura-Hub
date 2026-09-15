@@ -33,10 +33,8 @@ class SocketService {
       console.log("[WebSocket] Connected successfully with Socket ID:", this.socket?.id);
     });
 
-    this.socket.on("connect_error", (error) => {
+    this.socket.on("connect_error", () => {
       this.isConnected = false;
-      // Silently fall back for client-only mock environment
-      console.warn("[WebSocket] Server connection offline. Operating in fallback mock mode.", error.message);
     });
 
     this.socket.on("disconnect", (reason) => {
