@@ -14,18 +14,9 @@ const initialUser = getUserData();
 const initialToken = getAuthToken();
 
 const initialState: AuthState = {
-  user: initialUser || {
-    id: "user-1",
-    firstName: "Jenny",
-    lastName: "Jimenez",
-    email: "jennyhot@hotmail.com",
-    role: "instructor",
-    avatar: "/assets/images/profile.jpg",
-    bio: "Senior full stack instructor & developer",
-    occupation: "Software Engineer",
-  },
-  token: initialToken || "demo-jwt-token",
-  isAuthenticated: Boolean(initialToken || initialUser),
+  user: initialUser || null,
+  token: initialToken || null,
+  isAuthenticated: Boolean(initialToken && initialUser),
   isLoading: false,
   error: null,
 };
