@@ -9,7 +9,7 @@ import { User } from "@/types/auth";
  * ---------------------------------------------------------
  */
 export const BASE_API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+  import.meta.env.VITE_API_URL || "https://nexura-hub-backend.onrender.com/api/v1";
 
 const TOKEN_KEY = "nexurahub_token";
 const REFRESH_TOKEN_KEY = "nexurahub_refresh_token";

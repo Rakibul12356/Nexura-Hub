@@ -6,7 +6,8 @@ A modern, responsive, and full-featured **Learning Management System (LMS)** web
 
 ## 🌐 Live Demo
 
-🔗 **Live URL:** [https://nexurahub.vercel.app/](https://nexurahub.vercel.app/)
+🔗 **Live Frontend URL:** [https://nexurahub.vercel.app/](https://nexurahub.vercel.app/)  
+⚡ **Production Backend API:** [https://nexura-hub-backend.onrender.com/](https://nexura-hub-backend.onrender.com/)  
 
 ---
 
