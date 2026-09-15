@@ -23,7 +23,8 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export const CategoryDistributionChart: React.FC<CategoryDistributionProps> = ({ data }) => {
-  const totalRev = data.reduce((acc, curr) => acc + curr.revenue, 0);
+  const chartData = Array.isArray(data) ? data : [];
+  const totalRev = chartData.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
 
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm h-full flex flex-col justify-between space-y-4">

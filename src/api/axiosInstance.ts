@@ -134,10 +134,8 @@ axiosInstance.interceptors.response.use(
       if (!window.location.pathname.includes("/login")) {
         toast.error("Session expired. Please log in again.");
       }
-    } else if (status === 403) {
-      toast.error("Access forbidden: You do not have permission.");
     } else if (status === 404) {
-      console.warn(`[API 404 Not Found]: ${error.config?.url}`);
+      // API 404 handled gracefully by service fallbacks
     } else if (status && status >= 500) {
       toast.error("Server error (500). Please try again later.");
     }

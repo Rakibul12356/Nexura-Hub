@@ -39,27 +39,34 @@ import { toast } from "react-toastify";
 import { exportToCsv } from "@/lib/exportToCsv";
 
 export const AdminRevenuePage: React.FC = () => {
-  const { transactions, courses, monthlyGrowth } = useAppSelector((state) => state.admin);
+  const {
+    transactions = [],
+    courses = [],
+    monthlyGrowth = [],
+  } = useAppSelector((state) => state.admin || {});
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCreatorFilter, setSelectedCreatorFilter] = useState("all");
 
-  const totalGmv = courses.reduce((acc, c) => acc + c.totalRevenue, 0);
-  const totalAdminEarnings = courses.reduce((acc, c) => acc + c.adminEarnings, 0);
+  const safeCourses = Array.isArray(courses) ? courses : [];
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
+  const totalGmv = safeCourses.reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
+  const totalAdminEarnings = safeCourses.reduce((acc, c) => acc + (c.adminEarnings || 0), 0);
   const totalInstructorPayouts = totalGmv - totalAdminEarnings;
 
-  const instructorCourseSales = courses
+  const instructorCourseSales = safeCourses
     .filter((c) => c.creatorType === "instructor")
-    .reduce((acc, c) => acc + c.totalRevenue, 0);
+    .reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
 
   const admin5PercentCut = Number((instructorCourseSales * 0.05).toFixed(2));
 
-  const adminDirectCourseSales = courses
+  const adminDirectCourseSales = safeCourses
     .filter((c) => c.creatorType === "admin")
-    .reduce((acc, c) => acc + c.totalRevenue, 0);
+    .reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((txn) => {
+    return safeTransactions.filter((txn) => {
       const matchSearch =
         txn.courseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         txn.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||

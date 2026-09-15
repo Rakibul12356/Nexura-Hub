@@ -20,23 +20,32 @@ import {
 } from "lucide-react";
 
 export const AdminOverviewPage: React.FC = () => {
-  const { courses, users, transactions, monthlyGrowth, categoryStats } = useAppSelector(
-    (state) => state.admin
-  );
+  const {
+    courses = [],
+    users = [],
+    transactions = [],
+    monthlyGrowth = [],
+    categoryStats = [],
+  } = useAppSelector((state) => state.admin || {});
 
-  const students = users.filter((u) => u.role === "student");
-  const instructors = users.filter((u) => u.role === "instructor");
+  const safeCourses = Array.isArray(courses) ? courses : [];
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+  const safeMonthlyGrowth = Array.isArray(monthlyGrowth) ? monthlyGrowth : [];
 
-  const totalGmv = courses.reduce((acc, c) => acc + c.totalRevenue, 0);
-  const totalAdminEarnings = courses.reduce((acc, c) => acc + c.adminEarnings, 0);
+  const students = safeUsers.filter((u) => u.role === "student");
+  const instructors = safeUsers.filter((u) => u.role === "instructor");
+
+  const totalGmv = safeCourses.reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
+  const totalAdminEarnings = safeCourses.reduce((acc, c) => acc + (c.adminEarnings || 0), 0);
   const totalInstructorPayouts = totalGmv - totalAdminEarnings;
-  const totalEnrollments = courses.reduce((acc, c) => acc + c.enrollmentsCount, 0);
+  const totalEnrollments = safeCourses.reduce((acc, c) => acc + (c.enrollmentsCount || 0), 0);
 
-  const chartTotalGmv = monthlyGrowth.reduce((acc, curr) => acc + curr.gmv, 0);
-  const chartAdminRev = monthlyGrowth.reduce((acc, curr) => acc + curr.adminRevenue, 0);
-  const chartInstructorPayouts = monthlyGrowth.reduce((acc, curr) => acc + curr.instructorEarnings, 0);
+  const chartTotalGmv = safeMonthlyGrowth.reduce((acc, curr) => acc + (curr.gmv || 0), 0);
+  const chartAdminRev = safeMonthlyGrowth.reduce((acc, curr) => acc + (curr.adminRevenue || 0), 0);
+  const chartInstructorPayouts = safeMonthlyGrowth.reduce((acc, curr) => acc + (curr.instructorEarnings || 0), 0);
 
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = safeTransactions.slice(0, 5);
 
   return (
     <div className="p-6 space-y-6">

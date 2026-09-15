@@ -34,8 +34,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const StudentGrowthChart: React.FC<StudentGrowthChartProps> = ({ data }) => {
-  const totalStudents = data.reduce((acc, curr) => acc + curr.students, 0);
-  const totalEnrollments = data.reduce((acc, curr) => acc + curr.enrollments, 0);
+  const chartData = Array.isArray(data) ? data : [];
+  const totalStudents = chartData.reduce((acc, curr) => acc + (curr.students || 0), 0);
+  const totalEnrollments = chartData.reduce((acc, curr) => acc + (curr.enrollments || 0), 0);
 
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm h-full flex flex-col justify-between space-y-4">

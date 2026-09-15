@@ -7,7 +7,8 @@ import { BookOpen, PlayCircle, Award } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 
 export const EnrolledCoursesPage: React.FC = () => {
-  const { enrolledCourses } = useAppSelector((state) => state.courses);
+  const { enrolledCourses } = useAppSelector((state) => state.courses || {});
+  const safeEnrolled = Array.isArray(enrolledCourses) ? enrolledCourses : [];
 
   return (
     <div className="space-y-6">
@@ -19,12 +20,12 @@ export const EnrolledCoursesPage: React.FC = () => {
           </p>
         </div>
         <Badge variant="success" className="px-3 py-1">
-          {enrolledCourses.length} Active Courses
+          {safeEnrolled.length} Active Courses
         </Badge>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
-        {enrolledCourses.map((course) => (
+        {safeEnrolled.map((course) => (
           <div
             key={course.id}
             className="group hover:shadow-md transition-all overflow-hidden border bg-card text-card-foreground rounded-xl p-4 flex flex-col justify-between"
