@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { NavItem } from "@/types/common";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setSearchQuery } from "@/store/slices/courseSlice";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface MobileNavProps {
   items: NavItem[];
@@ -23,18 +22,16 @@ interface MobileNavProps {
 
 export const MobileNav: React.FC<MobileNavProps> = ({ items, children, onClose }) => {
   useLockBody();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      dispatch(setSearchQuery(searchTerm.trim()));
       onClose?.();
-      navigate("/courses");
+      navigate(`/courses?search=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 

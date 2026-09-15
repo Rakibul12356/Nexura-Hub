@@ -1,7 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
   BarChart,
   BookOpen,
   PlusCircle,
@@ -10,24 +9,24 @@ import {
   Users,
   DollarSign,
   ShieldCheck,
-  GraduationCap,
+  LayoutDashboard,
   MessageSquare,
 } from "lucide-react";
 import { SidebarItem } from "./sidebar-item";
-import { useAppSelector } from "@/store/hooks";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useInstructorCoursesQuery } from "@/hooks/queries/useDashboardQuery";
+import { useCoursesQuery } from "@/hooks/queries/useCoursesQuery";
 
 export const SidebarRoutes: React.FC = () => {
   const location = useLocation();
-  const { user } = useAppSelector((state) => state.auth);
-  const { courses: adminCourses, users: adminUsers, transactions } = useAppSelector(
-    (state) => state.admin
-  );
-  const { instructorCourses } = useAppSelector((state) => state.dashboard);
+  const user = useAuthStore((state) => state.user);
+
+  const { data: instructorCourses = [] } = useInstructorCoursesQuery();
+  const { data: allCourses = [] } = useCoursesQuery();
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  const pendingCourses = adminCourses.filter((c) => !c.isPublished).length;
-  const pendingUsers = adminUsers.filter((u) => u.status === "pending").length;
+  const pendingCourses = allCourses.filter((c) => !c.isPublished).length;
 
   const adminRoutes = [
     {
@@ -39,19 +38,17 @@ export const SidebarRoutes: React.FC = () => {
       icon: BookOpen,
       label: "All Courses",
       href: "/admin/courses",
-      badge: pendingCourses > 0 ? `${pendingCourses} new` : adminCourses.length,
+      badge: pendingCourses > 0 ? `${pendingCourses} new` : allCourses.length,
     },
     {
       icon: Users,
       label: "User Management",
       href: "/admin/users",
-      badge: pendingUsers > 0 ? `${pendingUsers} req` : adminUsers.length,
     },
     {
       icon: DollarSign,
       label: "Revenue & 5% Cut",
       href: "/admin/revenue",
-      badge: transactions.length,
     },
   ];
 

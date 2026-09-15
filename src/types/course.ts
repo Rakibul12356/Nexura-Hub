@@ -98,6 +98,9 @@ export interface Course {
     coursesCount?: number;
     reviewsCount?: number;
   };
+  image?: string;
+  isFeatured?: boolean;
+  creatorType?: "admin" | "instructor";
   modules?: Module[];
   quizSets?: QuizSet[];
   reviews?: CourseReview[];

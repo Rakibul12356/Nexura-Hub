@@ -1,7 +1,7 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAppSelector } from "@/store/hooks";
+import { useUiStore } from "@/store/useUiStore";
 import { cn } from "@/lib/utils";
 
 interface SidebarItemProps {
@@ -19,7 +19,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
 
   const isActive =
     location.pathname === href ||

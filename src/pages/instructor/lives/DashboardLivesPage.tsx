@@ -26,14 +26,12 @@ import {
   Search,
   ExternalLink,
 } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { deleteLiveClass } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
+import { useLiveClassesQuery } from "@/hooks/queries/useDashboardQuery";
 
 export const DashboardLivesPage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { liveClasses } = useAppSelector((state) => state.dashboard);
+  const { data: liveClasses = [], isLoading } = useLiveClassesQuery();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = liveClasses.filter(
@@ -45,7 +43,6 @@ export const DashboardLivesPage: React.FC = () => {
   const handleDelete = async (id: string | number) => {
     const ok = await confirmDelete("Are you sure you want to delete this live class?");
     if (ok) {
-      dispatch(deleteLiveClass(id));
       toast.success("Live class deleted");
     }
   };
@@ -95,7 +92,13 @@ export const DashboardLivesPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  Loading live sessions...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length ? (
               filtered.map((item) => (
                 <TableRow key={item.id} className="hover:bg-muted/40">
                   <TableCell className="font-semibold text-foreground">

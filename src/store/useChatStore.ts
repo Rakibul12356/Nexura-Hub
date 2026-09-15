@@ -1,13 +1,51 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { create } from "zustand";
 import { ChatConversation, ChatMessage, ChatUser } from "@/types/chat";
 
-interface ChatState {
+interface ChatStoreState {
   conversations: ChatConversation[];
   messages: Record<string, ChatMessage[]>;
   activeConversationId: string | null;
   isLoading: boolean;
   isSocketConnected: boolean;
   typingUsers: Record<string, { userId: string | number; userName: string }[]>;
+
+  // Actions
+  setSocketConnected: (isConnected: boolean) => void;
+  receiveSocketMessage: (data: { conversationId: string; message: ChatMessage }) => void;
+  setTypingStatus: (data: {
+    conversationId: string;
+    userId: string | number;
+    userName: string;
+    isTyping: boolean;
+  }) => void;
+  updateUserPresence: (data: { userId: string | number; isOnline: boolean }) => void;
+  setActiveConversation: (id: string | null) => void;
+  sendMessage: (data: {
+    conversationId: string;
+    content: string;
+    sender: ChatUser;
+    imageUrl?: string;
+    replyTo?: { id: string; senderName: string; content: string };
+  }) => void;
+  unsendMessage: (data: { conversationId: string; messageId: string }) => void;
+  toggleMessageReaction: (data: {
+    conversationId: string;
+    messageId: string;
+    emoji: string;
+    userId: string | number;
+  }) => void;
+  createCourseGroup: (data: {
+    courseId: string | number;
+    courseTitle: string;
+    groupName: string;
+    instructor: ChatUser;
+  }) => void;
+  autoJoinCourseGroupOnEnroll: (data: {
+    courseId: string | number;
+    courseTitle: string;
+    student: ChatUser;
+    instructor: ChatUser;
+  }) => void;
 }
 
 const initialConversations: ChatConversation[] = [
@@ -54,7 +92,7 @@ const initialConversations: ChatConversation[] = [
       senderName: "Tapas Adhikary",
       senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       senderRole: "instructor",
-      content: "Hi Rahim! Thanks for enrolling. Feel free to reach out if you get stuck on Redux Thunk.",
+      content: "Hi Rahim! Thanks for enrolling. Feel free to reach out if you get stuck on TanStack Query.",
       timestamp: "Yesterday",
       isRead: false,
     },
@@ -113,109 +151,85 @@ const initialMessages: Record<string, ChatMessage[]> = {
       senderName: "Tapas Adhikary",
       senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       senderRole: "instructor",
-      content: "Hi Rahim! Thanks for enrolling. Feel free to reach out if you get stuck on Redux Thunk.",
+      content: "Hi Rahim! Thanks for enrolling. Feel free to reach out if you get stuck on TanStack Query.",
       timestamp: "Yesterday",
       isRead: false,
     },
   ],
 };
 
-const initialState: ChatState = {
+export const useChatStore = create<ChatStoreState>((set) => ({
   conversations: initialConversations,
   messages: initialMessages,
   activeConversationId: "group-1",
   isLoading: false,
   isSocketConnected: false,
   typingUsers: {},
-};
 
-export const chatSlice = createSlice({
-  name: "chat",
-  initialState,
-  reducers: {
-    setSocketConnected: (state, action: PayloadAction<boolean>) => {
-      state.isSocketConnected = action.payload;
-    },
+  setSocketConnected: (isConnected: boolean) => set({ isSocketConnected: isConnected }),
 
-    receiveSocketMessage: (
-      state,
-      action: PayloadAction<{ conversationId: string; message: ChatMessage }>
-    ) => {
-      const { conversationId, message } = action.payload;
-      if (!state.messages[conversationId]) {
-        state.messages[conversationId] = [];
-      }
-      if (!state.messages[conversationId].some((m) => m.id === message.id)) {
-        state.messages[conversationId].push(message);
-        const conv = state.conversations.find((c) => c.id === conversationId);
-        if (conv) {
-          conv.lastMessage = message;
-          conv.updatedAt = message.timestamp || "Just now";
-          if (state.activeConversationId !== conversationId) {
-            conv.unreadCount += 1;
-          }
+  receiveSocketMessage: ({ conversationId, message }) =>
+    set((state) => {
+      const currentMessages = state.messages[conversationId] || [];
+      if (currentMessages.some((m) => m.id === message.id)) return state;
+
+      const updatedMessages = [...currentMessages, message];
+      const updatedConversations = state.conversations.map((conv) => {
+        if (conv.id === conversationId) {
+          return {
+            ...conv,
+            lastMessage: message,
+            updatedAt: message.timestamp || "Just now",
+            unreadCount: state.activeConversationId !== conversationId ? conv.unreadCount + 1 : conv.unreadCount,
+          };
         }
-      }
-    },
+        return conv;
+      });
 
-    setTypingStatus: (
-      state,
-      action: PayloadAction<{
-        conversationId: string;
-        userId: string | number;
-        userName: string;
-        isTyping: boolean;
-      }>
-    ) => {
-      const { conversationId, userId, userName, isTyping } = action.payload;
-      if (!state.typingUsers[conversationId]) {
-        state.typingUsers[conversationId] = [];
-      }
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMessages },
+        conversations: updatedConversations,
+      };
+    }),
+
+  setTypingStatus: ({ conversationId, userId, userName, isTyping }) =>
+    set((state) => {
+      const currentList = state.typingUsers[conversationId] || [];
+      let updatedList = [...currentList];
+
       if (isTyping) {
-        if (!state.typingUsers[conversationId].some((u) => u.userId === userId)) {
-          state.typingUsers[conversationId].push({ userId, userName });
+        if (!updatedList.some((u) => u.userId === userId)) {
+          updatedList.push({ userId, userName });
         }
       } else {
-        state.typingUsers[conversationId] = state.typingUsers[conversationId].filter(
-          (u) => u.userId !== userId
-        );
+        updatedList = updatedList.filter((u) => u.userId !== userId);
       }
-    },
 
-    updateUserPresence: (
-      state,
-      action: PayloadAction<{ userId: string | number; isOnline: boolean }>
-    ) => {
-      const { userId, isOnline } = action.payload;
-      state.conversations.forEach((conv) => {
-        conv.members.forEach((member) => {
-          if (member.id === userId) {
-            member.isOnline = isOnline;
-          }
-        });
-      });
-    },
-    setActiveConversation: (state, action: PayloadAction<string | null>) => {
-      state.activeConversationId = action.payload;
-      if (action.payload) {
-        const conv = state.conversations.find((c) => c.id === action.payload);
-        if (conv) {
-          conv.unreadCount = 0;
-        }
-      }
-    },
+      return {
+        typingUsers: { ...state.typingUsers, [conversationId]: updatedList },
+      };
+    }),
 
-    sendMessage: (
-      state,
-      action: PayloadAction<{
-        conversationId: string;
-        content: string;
-        sender: ChatUser;
-        imageUrl?: string;
-        replyTo?: { id: string; senderName: string; content: string };
-      }>
-    ) => {
-      const { conversationId, content, sender, imageUrl, replyTo } = action.payload;
+  updateUserPresence: ({ userId, isOnline }) =>
+    set((state) => ({
+      conversations: state.conversations.map((conv) => ({
+        ...conv,
+        members: conv.members.map((member) =>
+          member.id === userId ? { ...member, isOnline } : member
+        ),
+      })),
+    })),
+
+  setActiveConversation: (id: string | null) =>
+    set((state) => ({
+      activeConversationId: id,
+      conversations: state.conversations.map((conv) =>
+        conv.id === id ? { ...conv, unreadCount: 0 } : conv
+      ),
+    })),
+
+  sendMessage: ({ conversationId, content, sender, imageUrl, replyTo }) =>
+    set((state) => {
       const now = new Date();
       const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -232,94 +246,82 @@ export const chatSlice = createSlice({
         replyTo,
       };
 
-      if (!state.messages[conversationId]) {
-        state.messages[conversationId] = [];
-      }
+      const currentMessages = state.messages[conversationId] || [];
+      const updatedMessages = [...currentMessages, newMessage];
 
-      state.messages[conversationId].push(newMessage);
+      const updatedConversations = state.conversations.map((conv) =>
+        conv.id === conversationId
+          ? { ...conv, lastMessage: newMessage, updatedAt: timeString }
+          : conv
+      );
 
-      const conv = state.conversations.find((c) => c.id === conversationId);
-      if (conv) {
-        conv.lastMessage = newMessage;
-        conv.updatedAt = timeString;
-      }
-    },
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMessages },
+        conversations: updatedConversations,
+      };
+    }),
 
-    unsendMessage: (
-      state,
-      action: PayloadAction<{ conversationId: string; messageId: string }>
-    ) => {
-      const { conversationId, messageId } = action.payload;
-      if (state.messages[conversationId]) {
-        state.messages[conversationId] = state.messages[conversationId].filter(
-          (m) => m.id !== messageId
-        );
-        const conv = state.conversations.find((c) => c.id === conversationId);
-        if (conv) {
-          const remaining = state.messages[conversationId];
-          conv.lastMessage = remaining.length > 0 ? remaining[remaining.length - 1] : undefined;
+  unsendMessage: ({ conversationId, messageId }) =>
+    set((state) => {
+      const currentMessages = state.messages[conversationId] || [];
+      const updatedMessages = currentMessages.filter((m) => m.id !== messageId);
+
+      const updatedConversations = state.conversations.map((conv) => {
+        if (conv.id === conversationId) {
+          const lastMsg = updatedMessages.length > 0 ? updatedMessages[updatedMessages.length - 1] : undefined;
+          return { ...conv, lastMessage: lastMsg };
         }
-      }
-    },
+        return conv;
+      });
 
-    toggleMessageReaction: (
-      state,
-      action: PayloadAction<{
-        conversationId: string;
-        messageId: string;
-        emoji: string;
-        userId: string | number;
-      }>
-    ) => {
-      const { conversationId, messageId, emoji, userId } = action.payload;
-      const msgList = state.messages[conversationId];
-      if (!msgList) return;
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMessages },
+        conversations: updatedConversations,
+      };
+    }),
 
-      const targetMsg = msgList.find((m) => m.id === messageId);
-      if (!targetMsg) return;
+  toggleMessageReaction: ({ conversationId, messageId, emoji, userId }) =>
+    set((state) => {
+      const currentMessages = state.messages[conversationId];
+      if (!currentMessages) return state;
 
-      if (!targetMsg.reactions) {
-        targetMsg.reactions = [];
-      }
+      const updatedMessages = currentMessages.map((msg) => {
+        if (msg.id !== messageId) return msg;
 
-      const existingReactionIndex = targetMsg.reactions.findIndex((r) => r.emoji === emoji);
+        const reactions = msg.reactions ? [...msg.reactions] : [];
+        const existingIdx = reactions.findIndex((r) => r.emoji === emoji);
 
-      if (existingReactionIndex > -1) {
-        const reaction = targetMsg.reactions[existingReactionIndex];
-        const userIndex = reaction.users.indexOf(userId);
+        if (existingIdx > -1) {
+          const reaction = { ...reactions[existingIdx] };
+          const userIdx = reaction.users.indexOf(userId);
 
-        if (userIndex > -1) {
-          // Remove user reaction
-          reaction.users.splice(userIndex, 1);
-          reaction.count -= 1;
-          if (reaction.count <= 0) {
-            targetMsg.reactions.splice(existingReactionIndex, 1);
+          if (userIdx > -1) {
+            reaction.users = reaction.users.filter((id) => id !== userId);
+            reaction.count -= 1;
+            if (reaction.count <= 0) {
+              reactions.splice(existingIdx, 1);
+            } else {
+              reactions[existingIdx] = reaction;
+            }
+          } else {
+            reaction.users = [...reaction.users, userId];
+            reaction.count += 1;
+            reactions[existingIdx] = reaction;
           }
         } else {
-          // Add user reaction
-          reaction.users.push(userId);
-          reaction.count += 1;
+          reactions.push({ emoji, count: 1, users: [userId] });
         }
-      } else {
-        // Add new emoji reaction group
-        targetMsg.reactions.push({
-          emoji,
-          count: 1,
-          users: [userId],
-        });
-      }
-    },
 
-    createCourseGroup: (
-      state,
-      action: PayloadAction<{
-        courseId: string | number;
-        courseTitle: string;
-        groupName: string;
-        instructor: ChatUser;
-      }>
-    ) => {
-      const { courseId, courseTitle, groupName, instructor } = action.payload;
+        return { ...msg, reactions };
+      });
+
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMessages },
+      };
+    }),
+
+  createCourseGroup: ({ courseId, courseTitle, groupName, instructor }) =>
+    set((state) => {
       const groupId = `group-${Date.now()}`;
       const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -336,45 +338,40 @@ export const chatSlice = createSlice({
         updatedAt: now,
       };
 
-      state.conversations.unshift(newConversation);
-      state.messages[groupId] = [
-        {
-          id: `msg-${Date.now()}`,
-          senderId: instructor.id,
-          senderName: instructor.name,
-          senderAvatar: instructor.avatar,
-          senderRole: "instructor",
-          content: `Welcome to the official group chat for ${courseTitle}!`,
-          timestamp: now,
-          isRead: true,
+      return {
+        conversations: [newConversation, ...state.conversations],
+        messages: {
+          ...state.messages,
+          [groupId]: [
+            {
+              id: `msg-${Date.now()}`,
+              senderId: instructor.id,
+              senderName: instructor.name,
+              senderAvatar: instructor.avatar,
+              senderRole: "instructor",
+              content: `Welcome to the official group chat for ${courseTitle}!`,
+              timestamp: now,
+              isRead: true,
+            },
+          ],
         },
-      ];
-      state.activeConversationId = groupId;
-    },
+        activeConversationId: groupId,
+      };
+    }),
 
-    autoJoinCourseGroupOnEnroll: (
-      state,
-      action: PayloadAction<{
-        courseId: string | number;
-        courseTitle: string;
-        student: ChatUser;
-        instructor: ChatUser;
-      }>
-    ) => {
-      const { courseId, courseTitle, student, instructor } = action.payload;
+  autoJoinCourseGroupOnEnroll: ({ courseId, courseTitle, student, instructor }) =>
+    set((state) => {
+      const conversations = [...state.conversations];
 
-      // 1. Check if group conversation exists for this course
-      let groupConv = state.conversations.find(
+      let groupConv = conversations.find(
         (c) => c.type === "group" && (c.courseId === courseId || c.courseTitle === courseTitle)
       );
 
       if (groupConv) {
-        // Add student to members if not already joined
         if (!groupConv.members.some((m) => m.id === student.id)) {
-          groupConv.members.push(student);
+          groupConv.members = [...groupConv.members, student];
         }
       } else {
-        // Create group conversation on the fly
         const groupId = `group-${courseId || Date.now()}`;
         groupConv = {
           id: groupId,
@@ -388,7 +385,7 @@ export const chatSlice = createSlice({
           unreadCount: 0,
           updatedAt: "Just now",
         };
-        state.conversations.unshift(groupConv);
+        conversations.unshift(groupConv);
         state.messages[groupId] = [
           {
             id: `msg-${Date.now()}`,
@@ -403,9 +400,8 @@ export const chatSlice = createSlice({
         ];
       }
 
-      // 2. Ensure Direct 1-on-1 Contact with Instructor exists
       const directConvId = `direct-${instructor.id}`;
-      let directConv = state.conversations.find((c) => c.id === directConvId);
+      let directConv = conversations.find((c) => c.id === directConvId);
       if (!directConv) {
         directConv = {
           id: directConvId,
@@ -428,24 +424,13 @@ export const chatSlice = createSlice({
             isRead: false,
           },
         };
-        state.conversations.unshift(directConv);
+        conversations.unshift(directConv);
         state.messages[directConvId] = [directConv.lastMessage];
       }
-    },
-  },
-});
 
-export const {
-  setSocketConnected,
-  receiveSocketMessage,
-  setTypingStatus,
-  updateUserPresence,
-  setActiveConversation,
-  sendMessage,
-  unsendMessage,
-  toggleMessageReaction,
-  createCourseGroup,
-  autoJoinCourseGroupOnEnroll,
-} = chatSlice.actions;
-
-export default chatSlice.reducer;
+      return {
+        conversations,
+        messages: { ...state.messages },
+      };
+    }),
+}));

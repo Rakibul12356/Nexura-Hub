@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, UserCheck, BookOpen, LayoutDashboard, LogOut } from "lucide-react";
 import { Logo } from "@/components/common/logo";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
-import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useLogoutMutation } from "@/hooks/queries/useAuthQuery";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,14 +19,17 @@ import NotificationCenter from "@/components/common/NotificationCenter";
 
 export const PlayerLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logoutMutation = useLogoutMutation();
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Successfully logged out");
-    navigate("/");
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/");
+      },
+    });
   };
 
   return (

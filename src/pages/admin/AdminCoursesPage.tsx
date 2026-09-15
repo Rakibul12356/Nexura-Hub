@@ -1,11 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import {
-  toggleCoursePublish,
-  toggleCourseFeatured,
-  deleteAdminCourse,
-} from "@/store/slices/adminSlice";
 import { formatPrice } from "@/lib/formatPrice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,15 +38,20 @@ import {
   Star,
   ShieldCheck,
   Percent,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
+import {
+  useCoursesQuery,
+  useUpdateCourseMutation,
+  useDeleteCourseMutation,
+} from "@/hooks/queries/useCoursesQuery";
 
 export const AdminCoursesPage: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { courses } = useAppSelector((state) => state.admin);
+  const { data: courses = [], isLoading } = useCoursesQuery();
+  const updateCourseMutation = useUpdateCourseMutation();
+  const deleteCourseMutation = useDeleteCourseMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -60,7 +59,10 @@ export const AdminCoursesPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   const categories = useMemo(() => {
-    return Array.from(new Set(courses.map((c) => c.category)));
+    const list = courses
+      .map((c) => c.category)
+      .filter((cat): cat is string => Boolean(cat));
+    return Array.from(new Set(list));
   }, [courses]);
 
   const filteredCourses = useMemo(() => {
@@ -74,7 +76,7 @@ export const AdminCoursesPage: React.FC = () => {
         selectedCategory === "all" || course.category === selectedCategory;
 
       const matchCreator =
-        selectedCreator === "all" || course.creatorType === selectedCreator;
+        selectedCreator === "all" || (course as any).creatorType === selectedCreator;
 
       const matchStatus =
         selectedStatus === "all" ||
@@ -86,222 +88,170 @@ export const AdminCoursesPage: React.FC = () => {
   }, [courses, searchTerm, selectedCategory, selectedCreator, selectedStatus]);
 
   const handleTogglePublish = (id: string | number, current: boolean) => {
-    dispatch(toggleCoursePublish(id));
-    toast.success(current ? "Course moved to drafts" : "Course published to marketplace!");
+    updateCourseMutation.mutate(
+      { id, data: { isPublished: !current } },
+      {
+        onSuccess: () => {
+          toast.success(current ? "Course moved to drafts" : "Course published to marketplace!");
+        },
+      }
+    );
   };
 
   const handleToggleFeatured = (id: string | number, current: boolean) => {
-    dispatch(toggleCourseFeatured(id));
-    toast.success(current ? "Removed from featured" : "Marked as featured on homepage!");
+    updateCourseMutation.mutate(
+      { id, data: { isFeatured: !current } },
+      {
+        onSuccess: () => {
+          toast.success(current ? "Removed from featured" : "Marked as featured on homepage!");
+        },
+      }
+    );
   };
 
   const handleDelete = async (id: string | number, title: string) => {
     const ok = await confirmDelete(`Are you sure you want to permanently delete "${title}"?`);
     if (ok) {
-      dispatch(deleteAdminCourse(id));
-      toast.success("Course deleted successfully");
+      deleteCourseMutation.mutate(id);
     }
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Course Management</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Full administrative access over all instructor and platform courses ({courses.length} total)
+          <p className="text-sm text-muted-foreground">
+            Manage, approve, feature, and edit all platform courses.
           </p>
         </div>
+
+        <Button onClick={() => navigate("/dashboard/courses/add")} className="bg-sky-600 hover:bg-sky-700">
+          <PlusCircle className="h-4 w-4 mr-2" /> Create Course
+        </Button>
       </div>
 
-      {/* Commission Rules Info Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-xl bg-muted/40 border text-xs">
-        <div className="flex items-start gap-2.5">
-          <div className="h-6 w-6 rounded bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0 mt-0.5">
-            <Percent className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <span className="font-semibold text-foreground">Instructor Courses (5% Platform Fee):</span>
-            <p className="text-muted-foreground mt-0.5">
-              When an instructor course is sold, 95% goes to the instructor and 5% commission is automatically earned by the platform.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-2.5">
-          <div className="h-6 w-6 rounded bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-            <ShieldCheck className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <span className="font-semibold text-foreground">Admin-Created Courses (100% Revenue):</span>
-            <p className="text-muted-foreground mt-0.5">
-              Courses created directly by Admin retain 100% of the course sale price for the Nexura Hub platform.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters & Search Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {/* Filters Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-card p-4 rounded-xl border shadow-sm">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by title or instructor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 text-xs"
           />
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto flex-wrap">
-          {/* Creator filter */}
-          <Select value={selectedCreator} onValueChange={setSelectedCreator}>
-            <SelectTrigger className="h-9 w-36 text-xs">
-              <SelectValue placeholder="Creator" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Creators</SelectItem>
-              <SelectItem value="instructor">Instructor Only</SelectItem>
-              <SelectItem value="admin">Admin Only</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Category filter */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="h-9 w-36 text-xs">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          {/* Category filter */}
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="h-9 w-36 text-xs">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Creator filter */}
+        <Select value={selectedCreator} onValueChange={setSelectedCreator}>
+          <SelectTrigger className="h-9 w-32 text-xs">
+            <SelectValue placeholder="Creator" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Creators</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="instructor">Instructor</SelectItem>
+          </SelectContent>
+        </Select>
 
-          {/* Status filter */}
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="h-9 w-32 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="draft">Draft / Review</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Status filter */}
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="h-9 w-32 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Courses Table */}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 text-xs">
-              <TableHead className="w-[300px]">Course Details</TableHead>
-              <TableHead>Creator & Type</TableHead>
+            <TableRow>
+              <TableHead>Course</TableHead>
+              <TableHead>Instructor</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Sales & Rev</TableHead>
-              <TableHead>Admin Cut</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCourses.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                  No courses found matching criteria.
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  Loading courses...
+                </TableCell>
+              </TableRow>
+            ) : filteredCourses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  No courses found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredCourses.map((course) => (
-                <TableRow key={course.id} className="hover:bg-muted/30">
+                <TableRow key={course.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={course.thumbnail}
+                        src={course.image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80"}
                         alt={course.title}
-                        className="h-12 w-20 rounded-md object-cover border shrink-0"
+                        className="h-10 w-14 object-cover rounded-md"
                       />
-                      <div className="space-y-0.5">
-                        <p className="font-semibold text-sm line-clamp-1 hover:text-primary cursor-pointer" onClick={() => navigate(`/courses/${course.id}`)}>
-                          {course.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="px-1.5 py-0.5 rounded bg-muted text-[10px]">
-                            {course.category}
-                          </span>
+                      <div>
+                        <p className="font-semibold text-sm line-clamp-1">{course.title}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
                           {course.isFeatured && (
-                            <Badge variant="outline" className="text-[9px] text-amber-600 bg-amber-500/10 border-amber-500/30 gap-0.5 py-0 px-1">
-                              <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> Featured
+                            <Badge variant="secondary" className="text-[10px] bg-amber-500/10 text-amber-600 gap-1 px-1.5 py-0">
+                              <Star className="h-2.5 w-2.5 fill-amber-500" /> Featured
                             </Badge>
                           )}
+                          <span className="text-xs text-muted-foreground">
+                            {(course as any).creatorType === "admin" ? (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 border-sky-500 text-sky-600">
+                                <ShieldCheck className="h-2.5 w-2.5 mr-0.5" /> Admin
+                              </Badge>
+                            ) : (
+                              "Instructor"
+                            )}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </TableCell>
-
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-foreground">
-                        {course.instructor?.name || "Nexura Team"}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] font-semibold ${
-                          course.creatorType === "admin"
-                            ? "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300"
-                            : "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
-                        }`}
-                      >
-                        {course.creatorType === "admin" ? "Admin (100% Rev)" : "Instructor (5% Fee)"}
-                      </Badge>
-                    </div>
+                  <TableCell className="text-xs font-medium">
+                    {course.instructor?.name || "Unassigned"}
                   </TableCell>
-
-                  <TableCell>
-                    <div className="font-semibold text-sm text-foreground">
-                      {formatPrice(course.discountPrice || course.price)}
-                    </div>
-                    {course.discountPrice && (
-                      <div className="text-[11px] text-muted-foreground line-through">
-                        {formatPrice(course.price)}
-                      </div>
-                    )}
+                  <TableCell className="text-xs">{course.category || "Uncategorized"}</TableCell>
+                  <TableCell className="text-xs font-semibold">
+                    {formatPrice(course.price)}
                   </TableCell>
-
                   <TableCell>
-                    <div className="text-xs font-medium">{course.enrollmentsCount} students</div>
-                    <div className="text-xs text-muted-foreground font-semibold">
-                      {formatPrice(course.totalRevenue)}
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      +{formatPrice(course.adminEarnings)}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {course.creatorType === "admin" ? "100% Platform" : "5% Commission"}
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge
-                      className={`text-xs font-medium ${
-                        course.isPublished
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
-                          : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
-                      }`}
-                    >
-                      {course.isPublished ? "Published" : "Draft / Review"}
+                    <Badge variant={course.isPublished ? "default" : "secondary"}>
+                      {course.isPublished ? "Published" : "Draft"}
                     </Badge>
                   </TableCell>
-
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -309,44 +259,35 @@ export const AdminCoursesPage: React.FC = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44 text-xs">
-                        <DropdownMenuItem asChild>
-                          <Link to={`/courses/${course.id}`} target="_blank" className="cursor-pointer">
-                            <Eye className="mr-2 h-3.5 w-3.5" /> Preview Course
-                          </Link>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => navigate(`/courses/${course.id}`)}>
+                          <Eye className="h-4 w-4 mr-2" /> View Course
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={`/dashboard/courses/${course.id}`} className="cursor-pointer">
-                            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit Curriculum
-                          </Link>
+                        <DropdownMenuItem onClick={() => navigate(`/dashboard/courses/${course.id}/edit`)}>
+                          <Pencil className="h-4 w-4 mr-2" /> Edit Course
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleToggleFeatured(course.id, !!course.isFeatured)}
-                          className="cursor-pointer"
-                        >
-                          <Star className="mr-2 h-3.5 w-3.5 text-amber-500" />
-                          {course.isFeatured ? "Unfeature" : "Feature on Home"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleTogglePublish(course.id, course.isPublished)}
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleTogglePublish(course.id, course.isPublished)}>
                           {course.isPublished ? (
                             <>
-                              <XCircle className="mr-2 h-3.5 w-3.5 text-amber-500" /> Unpublish
+                              <XCircle className="h-4 w-4 mr-2 text-amber-600" /> Unpublish
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-emerald-500" /> Publish
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" /> Publish
                             </>
                           )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleToggleFeatured(course.id, course.isFeatured)}>
+                          <Star className="h-4 w-4 mr-2 text-amber-500" />
+                          {course.isFeatured ? "Unfeature" : "Make Featured"}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleDelete(course.id, course.title)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
+                          className="text-destructive focus:text-destructive"
                         >
-                          <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete Course
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

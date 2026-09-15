@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAppSelector } from "@/store/hooks";
+import { useUiStore } from "@/store/useUiStore";
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -15,7 +15,7 @@ const ScrollToTop: React.FC = () => {
 };
 
 export const RootLayout: React.FC = () => {
-  const theme = useAppSelector((state) => state.ui.theme);
+  const theme = useUiStore((state) => state.theme);
 
   useEffect(() => {
     if (theme === "dark") {

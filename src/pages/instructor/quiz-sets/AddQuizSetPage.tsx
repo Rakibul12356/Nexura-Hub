@@ -5,15 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, BookA } from "lucide-react";
-import { useAppDispatch } from "@/store/hooks";
-import { addQuizSet } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
-import { QuizSet } from "@/types/course";
 
 export const AddQuizSetPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -25,16 +20,6 @@ export const AddQuizSetPage: React.FC = () => {
     }
 
     const newSetId = Date.now();
-    const newSet: QuizSet = {
-      id: newSetId,
-      title,
-      description,
-      totalMarks: 20,
-      isPublished: true,
-      questions: [],
-    };
-
-    dispatch(addQuizSet(newSet));
     toast.success("Quiz set created! Add questions now.");
     navigate(`/dashboard/quiz-sets/${newSetId}`);
   };

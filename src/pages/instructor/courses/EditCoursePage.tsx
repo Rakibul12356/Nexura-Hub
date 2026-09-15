@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { IconBadge } from "@/components/common/icon-badge";
 import { AlertBanner } from "@/components/common/alert-banner";
@@ -24,451 +24,319 @@ import {
   Trash2,
   BookA,
   GraduationCap,
-  Star,
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateCourse, deleteCourse } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
 import { Module } from "@/types/course";
 import { confirmDelete } from "@/lib/confirmDelete";
+import {
+  useCourseDetailQuery,
+  useUpdateCourseMutation,
+  useDeleteCourseMutation,
+  useCategoriesQuery,
+} from "@/hooks/queries/useCoursesQuery";
 
 export const EditCoursePage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { instructorCourses, quizSets } = useAppSelector((state) => state.dashboard);
-  const { categories } = useAppSelector((state) => state.courses);
+  const { data: course, isLoading } = useCourseDetailQuery(courseId || "");
+  const { data: categories = [] } = useCategoriesQuery();
+  const updateCourseMutation = useUpdateCourseMutation();
+  const deleteCourseMutation = useDeleteCourseMutation();
 
-  const course =
-    instructorCourses.find((c) => String(c.id) === String(courseId)) ||
-    instructorCourses[0];
-
-  // Forms editing states
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [title, setTitle] = useState(course?.title || "");
+  const [title, setTitle] = useState("");
 
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
-  const [description, setDescription] = useState(course?.description || "");
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState("");
 
   const [isEditingImage, setIsEditingImage] = useState(false);
-  const [thumbnail, setThumbnail] = useState(course?.thumbnail || "");
+  const [image, setImage] = useState("");
 
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [category, setCategory] = useState(course?.category || "Development");
+  const [category, setCategory] = useState("");
 
   const [isEditingPrice, setIsEditingPrice] = useState(false);
-  const [price, setPrice] = useState(course?.price || 49);
+  const [price, setPrice] = useState<number>(0);
 
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
 
-  const [modules, setModules] = useState<Module[]>(
-    course?.modules && course.modules.length > 0
-      ? course.modules
-      : [
-          {
-            id: "mod-1",
-            title: "Introduction to React Ecosystem",
-            isPublished: true,
-            position: 1,
-            lessons: [],
-          },
-          {
-            id: "mod-2",
-            title: "State Architecture with Redux Toolkit",
-            isPublished: true,
-            position: 2,
-            lessons: [],
-          },
-        ]
-  );
+  const [modules, setModules] = useState<Module[]>([]);
 
-  const [isPublished, setIsPublished] = useState(course?.isPublished || false);
+  useEffect(() => {
+    if (course) {
+      setTitle(course.title || "");
+      setDescription(course.description || "");
+      setImage(course.thumbnail || course.image || "");
+      setCategory(course.category || "");
+      setPrice(course.price || 0);
+      setModules(course.modules || []);
+    }
+  }, [course]);
+
+  if (isLoading) {
+    return <div className="p-6 text-center text-muted-foreground">Loading course details...</div>;
+  }
+
+  if (!course) {
+    return <div className="p-6 text-center text-muted-foreground">Course not found.</div>;
+  }
+
+  const isPublished = course.isPublished;
+  const completionText = `${[title, description, image, category, price, modules.length > 0].filter(Boolean).length}/6 completed`;
+
+  const handleUpdate = (updatedFields: Partial<typeof course>) => {
+    if (!courseId) return;
+    updateCourseMutation.mutate({ id: courseId, data: updatedFields });
+  };
 
   const handleTogglePublish = () => {
-    const nextState = !isPublished;
-    setIsPublished(nextState);
-    dispatch(updateCourse({ ...course, isPublished: nextState }));
-    toast.success(
-      nextState ? "Course published successfully!" : "Course moved to draft."
-    );
+    handleUpdate({ isPublished: !isPublished });
   };
 
   const handleDeleteCourse = async () => {
-    const ok = await confirmDelete("Are you sure you want to delete this course?");
+    if (!courseId) return;
+    const ok = await confirmDelete(`Are you sure you want to delete "${course.title}"?`);
     if (ok) {
-      dispatch(deleteCourse(course.id));
-      toast.success("Course deleted successfully");
-      navigate("/dashboard/courses");
+      deleteCourseMutation.mutate(courseId, {
+        onSuccess: () => {
+          navigate("/dashboard/courses");
+        },
+      });
     }
-  };
-
-  const handleSaveTitle = () => {
-    dispatch(updateCourse({ ...course, title }));
-    setIsEditingTitle(false);
-    toast.success("Title updated");
-  };
-
-  const handleSaveDesc = () => {
-    dispatch(updateCourse({ ...course, description, subtitle: description }));
-    setIsEditingDesc(false);
-    toast.success("Description updated");
-  };
-
-  const handleSaveCategory = (val: string) => {
-    setCategory(val);
-    dispatch(updateCourse({ ...course, category: val }));
-    setIsEditingCategory(false);
-    toast.success("Category updated");
-  };
-
-  const handleSavePrice = () => {
-    dispatch(updateCourse({ ...course, price: Number(price) }));
-    setIsEditingPrice(false);
-    toast.success("Price updated");
   };
 
   const handleAddModule = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newModuleTitle.trim()) return;
 
-    const newMod: Module = {
+    const newModule: Module = {
       id: `mod-${Date.now()}`,
-      title: newModuleTitle,
-      isPublished: true,
+      title: newModuleTitle.trim(),
       position: modules.length + 1,
+      isPublished: false,
       lessons: [],
     };
-    const updated = [...modules, newMod];
-    setModules(updated);
-    dispatch(updateCourse({ ...course, modules: updated }));
+
+    const updatedModules = [...modules, newModule];
+    setModules(updatedModules);
+    handleUpdate({ modules: updatedModules });
     setNewModuleTitle("");
     setIsCreatingModule(false);
-    toast.success("Module added");
+    toast.success("Module created!");
   };
 
-  const handleReorderModules = (
-    updateData: { id: string | number; position: number }[]
-  ) => {
-    toast.success("Modules reordered");
-  };
-
-  const handleDeleteModule = async (moduleId: string | number) => {
-    const ok = await confirmDelete("Are you sure you want to delete this module?");
-    if (ok) {
-      const updated = modules.filter((m) => String(m.id) !== String(moduleId));
-      setModules(updated);
-      dispatch(updateCourse({ ...course, modules: updated }));
-      toast.success("Module deleted successfully");
-    }
+  const handleReorderModules = (updateData: { id: string | number; position: number }[]) => {
+    const updated = [...modules].sort((a, b) => {
+      const posA = updateData.find((u) => u.id === a.id)?.position || a.position || 0;
+      const posB = updateData.find((u) => u.id === b.id)?.position || b.position || 0;
+      return posA - posB;
+    });
+    setModules(updated);
+    handleUpdate({ modules: updated });
   };
 
   return (
-    <>
+    <div className="p-6 space-y-6">
+      <Link to="/dashboard/courses" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to courses
+      </Link>
+
       {!isPublished && (
-        <AlertBanner
-          label="This course is unpublished. It will not be visible in the catalog to students."
-          variant="warning"
-        />
+        <AlertBanner label="This course is unpublished. It will not be visible in the marketplace." variant="warning" />
       )}
 
-      <div className="p-6 space-y-6 w-full">
-        {/* Back and Top Actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <Link
-            to="/dashboard/courses"
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors gap-1.5"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Courses
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link to={`/dashboard/courses/${course.id}/enrollments`} className="gap-1.5">
-                <GraduationCap className="h-4 w-4 text-sky-600" />
-                Enrollments
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link to={`/dashboard/courses/${course.id}/reviews`} className="gap-1.5">
-                <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                Reviews
-              </Link>
-            </Button>
-            <Button
-              onClick={handleTogglePublish}
-              size="sm"
-              className={isPublished ? "bg-slate-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
-            >
-              {isPublished ? "Unpublish" : "Publish"}
-            </Button>
-            <Button
-              onClick={handleDeleteCourse}
-              variant="destructive"
-              size="sm"
-              className="gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Course Setup</h1>
+          <span className="text-xs text-muted-foreground">Complete all fields {completionText}</span>
         </div>
 
-        {/* 2-Column Course Setup Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          {/* Column 1: Customize your course */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-x-2">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleTogglePublish}>
+            {isPublished ? "Unpublish" : "Publish"}
+          </Button>
+          <Button variant="destructive" size="icon" className="h-9 w-9" onClick={handleDeleteCourse}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Col: Course Details */}
+        <div className="space-y-6">
+          <div className="p-5 border rounded-xl bg-card space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 font-semibold">
               <IconBadge icon={LayoutDashboard} />
-              <h2 className="text-xl font-bold">Customize your course</h2>
+              <h3>Customize your course</h3>
             </div>
 
-            {/* Title Form */}
-            <div className="border bg-card rounded-xl p-4 shadow-sm">
+            {/* Title */}
+            <div className="p-4 border rounded-lg bg-muted/20 space-y-2">
               <div className="flex items-center justify-between font-medium text-sm">
-                <span>Course Title</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditingTitle(!isEditingTitle)}
-                  className="gap-1 text-xs"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  {isEditingTitle ? "Cancel" : "Edit"}
+                <span>Course title</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(!isEditingTitle)}>
+                  {isEditingTitle ? "Cancel" : <><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</>}
                 </Button>
               </div>
-
-              {!isEditingTitle ? (
-                <p className="text-sm text-foreground mt-2 font-semibold">
-                  {course.title}
-                </p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                  <Button size="sm" onClick={handleSaveTitle}>
-                    Save Title
+              {isEditingTitle ? (
+                <div className="space-y-2">
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Button size="sm" onClick={() => { handleUpdate({ title }); setIsEditingTitle(false); }}>
+                    Save
                   </Button>
                 </div>
+              ) : (
+                <p className="text-sm font-semibold">{title}</p>
               )}
             </div>
 
-            {/* Description Form */}
-            <div className="border bg-card rounded-xl p-4 shadow-sm">
+            {/* Description */}
+            <div className="p-4 border rounded-lg bg-muted/20 space-y-2">
               <div className="flex items-center justify-between font-medium text-sm">
-                <span>Course Description</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditingDesc(!isEditingDesc)}
-                  className="gap-1 text-xs"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  {isEditingDesc ? "Cancel" : "Edit"}
+                <span>Course description</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditingDescription(!isEditingDescription)}>
+                  {isEditingDescription ? "Cancel" : <><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</>}
                 </Button>
               </div>
-
-              {!isEditingDesc ? (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {course.description || "No description provided."}
-                </p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                  />
-                  <Button size="sm" onClick={handleSaveDesc}>
-                    Save Description
+              {isEditingDescription ? (
+                <div className="space-y-2">
+                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+                  <Button size="sm" onClick={() => { handleUpdate({ description }); setIsEditingDescription(false); }}>
+                    Save
                   </Button>
                 </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{description || "No description provided."}</p>
               )}
             </div>
 
-            {/* Image Form */}
-            <div className="border bg-card rounded-xl p-4 shadow-sm">
+            {/* Image */}
+            <div className="p-4 border rounded-lg bg-muted/20 space-y-2">
               <div className="flex items-center justify-between font-medium text-sm">
-                <span>Course Thumbnail Image</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditingImage(!isEditingImage)}
-                  className="gap-1 text-xs"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  {isEditingImage ? "Cancel" : "Edit"}
+                <span>Course image</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditingImage(!isEditingImage)}>
+                  {isEditingImage ? "Cancel" : <><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</>}
                 </Button>
               </div>
-
-              {!isEditingImage ? (
-                <div className="mt-3 relative aspect-video rounded-lg overflow-hidden border">
-                  <img
-                    src={thumbnail || course.thumbnail}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="mt-3">
-                  <UploadDropzone
-                    value={thumbnail}
-                    onChange={(url) => {
-                      setThumbnail(url);
-                      dispatch(updateCourse({ ...course, thumbnail: url }));
+              {isEditingImage ? (
+                <UploadDropzone
+                  endpoint="courseImage"
+                  onChange={(url) => {
+                    if (url) {
+                      setImage(url);
+                      handleUpdate({ thumbnail: url });
                       setIsEditingImage(false);
-                    }}
-                  />
+                    }
+                  }}
+                />
+              ) : image ? (
+                <img src={image} alt="Course" className="h-40 w-full object-cover rounded-md border" />
+              ) : (
+                <div className="h-40 w-full border border-dashed rounded-md flex items-center justify-center text-xs text-muted-foreground">
+                  No thumbnail uploaded
                 </div>
               )}
             </div>
 
-            {/* Category Form */}
-            <div className="border bg-card rounded-xl p-4 shadow-sm">
+            {/* Category */}
+            <div className="p-4 border rounded-lg bg-muted/20 space-y-2">
               <div className="flex items-center justify-between font-medium text-sm">
-                <span>Course Category</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditingCategory(!isEditingCategory)}
-                  className="gap-1 text-xs"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  {isEditingCategory ? "Cancel" : "Edit"}
+                <span>Course category</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditingCategory(!isEditingCategory)}>
+                  {isEditingCategory ? "Cancel" : <><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</>}
                 </Button>
               </div>
-
-              {!isEditingCategory ? (
-                <p className="text-sm text-foreground mt-2 font-medium">
-                  {course.category}
-                </p>
-              ) : (
-                <div className="mt-3">
-                  <Select
-                    defaultValue={category}
-                    onValueChange={handleSaveCategory}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
+              {isEditingCategory ? (
+                <div className="space-y-2">
+                  <Select value={category} onValueChange={(val) => setCategory(val)}>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                     <SelectContent>
                       {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.title}>
-                          {c.title}
-                        </SelectItem>
+                        <SelectItem key={c.id} value={c.title}>{c.title}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button size="sm" onClick={() => { handleUpdate({ category }); setIsEditingCategory(false); }}>
+                    Save
+                  </Button>
                 </div>
+              ) : (
+                <p className="text-xs font-medium">{category || "No category selected."}</p>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Column 2: Course Modules & Pricing */}
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-x-2">
-                  <IconBadge icon={ListChecks} />
-                  <h2 className="text-xl font-bold">Course Modules</h2>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsCreatingModule(!isCreatingModule)}
-                  className="gap-1 text-xs text-sky-600 hover:text-sky-700"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  {isCreatingModule ? "Cancel" : "Add Module"}
-                </Button>
+        {/* Right Col: Modules & Pricing */}
+        <div className="space-y-6">
+          {/* Modules */}
+          <div className="p-5 border rounded-xl bg-card space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-semibold">
+                <IconBadge icon={ListChecks} />
+                <h3>Course Modules</h3>
               </div>
-
-              <div className="border bg-card rounded-xl p-4 shadow-sm space-y-4">
-                {isCreatingModule && (
-                  <form onSubmit={handleAddModule} className="space-y-3 pb-3 border-b">
-                    <Input
-                      placeholder="e.g. 'Advanced React Patterns'"
-                      value={newModuleTitle}
-                      onChange={(e) => setNewModuleTitle(e.target.value)}
-                      required
-                    />
-                    <Button type="submit" size="sm" className="bg-sky-600 hover:bg-sky-700">
-                      Create Module
-                    </Button>
-                  </form>
-                )}
-
-                <ModuleList
-                  items={modules}
-                  onReorder={handleReorderModules}
-                  onEdit={(moduleId) =>
-                    navigate(`/dashboard/courses/${course.id}/modules/${moduleId}`)
-                  }
-                  onDelete={handleDeleteModule}
-                />
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Drag and drop to reorder course modules
-                </p>
-              </div>
+              <Button variant="ghost" size="sm" onClick={() => setIsCreatingModule(!isCreatingModule)}>
+                {isCreatingModule ? "Cancel" : <><PlusCircle className="h-3.5 w-3.5 mr-1" /> Add Module</>}
+              </Button>
             </div>
 
-            {/* Price Form */}
-            <div>
-              <div className="flex items-center gap-x-2 mb-4">
-                <IconBadge icon={CircleDollarSign} />
-                <h2 className="text-xl font-bold">Sell Your Course</h2>
-              </div>
+            {isCreatingModule && (
+              <form onSubmit={handleAddModule} className="flex gap-2">
+                <Input
+                  placeholder="e.g. 'Introduction to the course'"
+                  value={newModuleTitle}
+                  onChange={(e) => setNewModuleTitle(e.target.value)}
+                  className="text-xs h-9"
+                />
+                <Button size="sm" type="submit" className="h-9">Create</Button>
+              </form>
+            )}
 
-              <div className="border bg-card rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between font-medium text-sm">
-                  <span>Course Price</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditingPrice(!isEditingPrice)}
-                    className="gap-1 text-xs"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    {isEditingPrice ? "Cancel" : "Edit"}
+            <ModuleList
+              onEdit={(id) => navigate(`/dashboard/courses/${courseId}/modules/${id}`)}
+              onReorder={handleReorderModules}
+              items={modules}
+            />
+          </div>
+
+          {/* Pricing */}
+          <div className="p-5 border rounded-xl bg-card space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 font-semibold">
+              <IconBadge icon={CircleDollarSign} />
+              <h3>Sell your course</h3>
+            </div>
+
+            <div className="p-4 border rounded-lg bg-muted/20 space-y-2">
+              <div className="flex items-center justify-between font-medium text-sm">
+                <span>Course price</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditingPrice(!isEditingPrice)}>
+                  {isEditingPrice ? "Cancel" : <><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</>}
+                </Button>
+              </div>
+              {isEditingPrice ? (
+                <div className="space-y-2">
+                  <Input
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                    className="text-xs"
+                  />
+                  <Button size="sm" onClick={() => { handleUpdate({ price }); setIsEditingPrice(false); }}>
+                    Save Price
                   </Button>
                 </div>
-
-                {!isEditingPrice ? (
-                  <p className="text-xl font-bold text-foreground mt-2">
-                    {formatPrice(course.price)}
-                  </p>
-                ) : (
-                  <div className="mt-3 space-y-3">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={price}
-                      onChange={(e) => setPrice(Number(e.target.value))}
-                    />
-                    <Button size="sm" onClick={handleSavePrice}>
-                      Save Price
-                    </Button>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <p className="text-sm font-semibold">{formatPrice(price)}</p>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

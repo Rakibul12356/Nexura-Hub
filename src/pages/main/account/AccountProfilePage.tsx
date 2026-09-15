@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateProfile } from "@/store/slices/authSlice";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useUpdateProfileMutation } from "@/hooks/queries/useAuthQuery";
 import { toast } from "react-toastify";
 
 export const AccountProfilePage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useAuthStore((state) => state.user);
+  const updateProfileMutation = useUpdateProfileMutation();
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "Jenny",
@@ -29,8 +29,7 @@ export const AccountProfilePage: React.FC = () => {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateProfile(formData));
-    toast.success("Profile details updated successfully!");
+    updateProfileMutation.mutate(formData);
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -114,8 +113,8 @@ export const AccountProfilePage: React.FC = () => {
             />
           </div>
 
-          <Button className="mt-5" type="submit">
-            Save Changes
+          <Button className="mt-5" type="submit" disabled={updateProfileMutation.isPending}>
+            {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </div>
@@ -148,7 +147,9 @@ export const AccountProfilePage: React.FC = () => {
                   }
                 />
               </div>
-              <Button type="submit">Update Contact</Button>
+              <Button type="submit" disabled={updateProfileMutation.isPending}>
+                Update Contact
+              </Button>
             </form>
           </div>
 

@@ -1,26 +1,26 @@
 // src/hooks/useSocket.ts
 import { useEffect, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import socketService from "@/services/socket";
-import {
-  setSocketConnected,
-  receiveSocketMessage,
-  setTypingStatus,
-  updateUserPresence,
-  toggleMessageReaction,
-} from "@/store/slices/chatSlice";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
 import { ChatMessage } from "@/types/chat";
 
 export const useSocket = () => {
-  const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
-  const { activeConversationId, isSocketConnected } = useAppSelector((state) => state.chat);
+  const user = useAuthStore((state) => state.user);
+  const activeConversationId = useChatStore((state) => state.activeConversationId);
+  const isSocketConnected = useChatStore((state) => state.isSocketConnected);
+  
+  const setSocketConnected = useChatStore((state) => state.setSocketConnected);
+  const receiveSocketMessage = useChatStore((state) => state.receiveSocketMessage);
+  const setTypingStatus = useChatStore((state) => state.setTypingStatus);
+  const updateUserPresence = useChatStore((state) => state.updateUserPresence);
+  const toggleMessageReaction = useChatStore((state) => state.toggleMessageReaction);
 
   useEffect(() => {
     // Admin role has no chat functionality as per system rules
     if (!user || user.role === "admin") {
       socketService.disconnect();
-      dispatch(setSocketConnected(false));
+      setSocketConnected(false);
       return;
     }
 
@@ -28,15 +28,15 @@ export const useSocket = () => {
     const socket = socketService.connect(user.id, user.role);
 
     const handleConnect = () => {
-      dispatch(setSocketConnected(true));
+      setSocketConnected(true);
     };
 
     const handleDisconnect = () => {
-      dispatch(setSocketConnected(false));
+      setSocketConnected(false);
     };
 
     const handleMessageReceived = (data: { conversationId: string; message: ChatMessage }) => {
-      dispatch(receiveSocketMessage(data));
+      receiveSocketMessage(data);
     };
 
     const handleUserTyping = (data: {
@@ -45,11 +45,11 @@ export const useSocket = () => {
       userName: string;
       isTyping: boolean;
     }) => {
-      dispatch(setTypingStatus(data));
+      setTypingStatus(data);
     };
 
     const handleUserPresence = (data: { userId: string | number; isOnline: boolean }) => {
-      dispatch(updateUserPresence(data));
+      updateUserPresence(data);
     };
 
     const handleReactionReceived = (data: {
@@ -58,7 +58,7 @@ export const useSocket = () => {
       emoji: string;
       userId: string | number;
     }) => {
-      dispatch(toggleMessageReaction(data));
+      toggleMessageReaction(data);
     };
 
     socket.on("connect", handleConnect);
@@ -71,7 +71,7 @@ export const useSocket = () => {
 
     // Sync initial connection state if already connected
     if (socket.connected) {
-      dispatch(setSocketConnected(true));
+      setSocketConnected(true);
     }
 
     return () => {
@@ -82,7 +82,14 @@ export const useSocket = () => {
       socketService.removeListener("user_presence");
       socketService.removeListener("receive_reaction");
     };
-  }, [user, dispatch]);
+  }, [
+    user,
+    setSocketConnected,
+    receiveSocketMessage,
+    setTypingStatus,
+    updateUserPresence,
+    toggleMessageReaction,
+  ]);
 
   // Join active conversation room when activeConversationId changes
   useEffect(() => {

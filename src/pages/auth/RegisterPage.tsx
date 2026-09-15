@@ -27,10 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loginStart, loginSuccess, loginFailure } from "@/store/slices/authSlice";
-import { authService } from "@/services/authService";
-import { toast } from "react-toastify";
+import { useRegisterMutation } from "@/hooks/queries/useAuthQuery";
 import { Role } from "@/types/auth";
 
 const registerSchema = z
@@ -50,11 +47,10 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterPage: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const roleParam = (searchParams.get("role") as Role) || "student";
-  const { isLoading } = useAppSelector((state) => state.auth);
+  const registerMutation = useRegisterMutation();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -68,24 +64,22 @@ export const RegisterPage: React.FC = () => {
     },
   });
 
-  const onSubmit = async (values: RegisterFormValues) => {
-    try {
-      dispatch(loginStart());
-      const data = await authService.register({
+  const onSubmit = (values: RegisterFormValues) => {
+    registerMutation.mutate(
+      {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         password: values.password,
         confirmPassword: values.confirmPassword,
         role: values.role,
-      });
-      dispatch(loginSuccess(data));
-      toast.success("Account created successfully!");
-      navigate(values.role === "instructor" ? "/dashboard" : "/courses");
-    } catch (err: any) {
-      dispatch(loginFailure(err.message || "Registration failed"));
-      toast.error("Registration failed. Please try again.");
-    }
+      },
+      {
+        onSuccess: () => {
+          navigate(values.role === "instructor" ? "/dashboard" : "/courses");
+        },
+      }
+    );
   };
 
   return (
@@ -196,9 +190,9 @@ export const RegisterPage: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-sky-600 hover:bg-sky-700"
-              disabled={isLoading}
+              disabled={registerMutation.isPending}
             >
-              {isLoading ? "Creating account..." : "Sign Up"}
+              {registerMutation.isPending ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
         </Form>

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { LoginCredentials } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,10 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loginStart, loginSuccess, loginFailure } from "@/store/slices/authSlice";
-import { authService } from "@/services/authService";
-import { toast } from "react-toastify";
+import { useLoginMutation } from "@/hooks/queries/useAuthQuery";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -34,9 +30,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading } = useAppSelector((state) => state.auth);
+  const loginMutation = useLoginMutation();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,28 +41,21 @@ export const LoginPage: React.FC = () => {
     },
   });
 
-  const onSubmit = async (values: LoginFormValues) => {
-    try {
-      dispatch(loginStart());
-      const credentials: LoginCredentials = {
-        email: values.email,
-        password: values.password,
-      };
-      const data = await authService.login(credentials);
-      dispatch(loginSuccess(data));
-      toast.success(`Welcome back, ${data.user.firstName}! Logged in as ${data.user.role}.`);
-      
-      if (data.user.role === "admin") {
-        navigate("/admin");
-      } else if (data.user.role === "instructor") {
-        navigate("/dashboard");
-      } else {
-        navigate("/account/enrolled-courses");
+  const onSubmit = (values: LoginFormValues) => {
+    loginMutation.mutate(
+      { email: values.email, password: values.password },
+      {
+        onSuccess: (data) => {
+          if (data.user.role === "admin") {
+            navigate("/admin");
+          } else if (data.user.role === "instructor") {
+            navigate("/dashboard");
+          } else {
+            navigate("/account/enrolled-courses");
+          }
+        },
       }
-    } catch (err: any) {
-      dispatch(loginFailure(err.message || "Failed to login"));
-      toast.error("Invalid credentials. Please try again.");
-    }
+    );
   };
 
   return (
@@ -80,7 +68,6 @@ export const LoginPage: React.FC = () => {
       </CardHeader>
       
       <CardContent className="space-y-5">
-        {/* Form Login */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -114,9 +101,9 @@ export const LoginPage: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-sky-600 hover:bg-sky-700 font-semibold"
-              disabled={isLoading}
+              disabled={loginMutation.isPending}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Form>

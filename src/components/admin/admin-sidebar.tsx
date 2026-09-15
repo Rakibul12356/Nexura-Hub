@@ -6,23 +6,19 @@ import {
   BookOpen,
   Users,
   DollarSign,
-  PlusCircle,
-  Home,
-  GraduationCap,
   PanelLeftClose,
 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleSidebar } from "@/store/slices/uiSlice";
+import { useUiStore } from "@/store/useUiStore";
+import { useCoursesQuery } from "@/hooks/queries/useCoursesQuery";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const AdminSidebar: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { courses, users, transactions } = useAppSelector((state) => state.admin);
-  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
+  const { data: courses = [] } = useCoursesQuery();
 
   const pendingCourses = courses.filter((c) => !c.isPublished).length;
-  const pendingUsers = users.filter((u) => u.status === "pending").length;
 
   const routes = [
     {
@@ -40,13 +36,11 @@ export const AdminSidebar: React.FC = () => {
       icon: Users,
       label: "User Management",
       href: "/admin/users",
-      badge: pendingUsers > 0 ? `${pendingUsers} req` : users.length,
     },
     {
       icon: DollarSign,
       label: "Revenue & 5% Cut",
       href: "/admin/revenue",
-      badge: transactions.length,
     },
   ];
 
@@ -65,7 +59,7 @@ export const AdminSidebar: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => dispatch(toggleSidebar())}
+              onClick={toggleSidebar}
               className="h-8 w-8 text-muted-foreground hover:text-foreground hidden lg:flex"
               title="Collapse Sidebar"
             >
@@ -74,7 +68,7 @@ export const AdminSidebar: React.FC = () => {
           </>
         ) : (
           <button
-            onClick={() => dispatch(toggleSidebar())}
+            onClick={toggleSidebar}
             className="flex h-11 w-11 items-center justify-center rounded-lg hover:opacity-80 transition p-0.5"
             title="Expand Sidebar"
           >

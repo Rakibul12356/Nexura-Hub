@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setActiveConversation } from "@/store/slices/chatSlice";
+import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { CreateGroupModal } from "./CreateGroupModal";
 
 interface ChatSidebarProps {
@@ -14,9 +14,10 @@ interface ChatSidebarProps {
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({ className, onSelectConversation }) => {
-  const dispatch = useAppDispatch();
-  const { conversations, activeConversationId } = useAppSelector((state) => state.chat);
-  const { user } = useAppSelector((state) => state.auth);
+  const conversations = useChatStore((state) => state.conversations);
+  const activeConversationId = useChatStore((state) => state.activeConversationId);
+  const setActiveConversation = useChatStore((state) => state.setActiveConversation);
+  const user = useAuthStore((state) => state.user);
 
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,7 +116,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ className, onSelectCon
               <button
                 key={conv.id}
                 onClick={() => {
-                  dispatch(setActiveConversation(conv.id));
+                  setActiveConversation(conv.id);
                   onSelectConversation?.();
                 }}
                 className={cn(

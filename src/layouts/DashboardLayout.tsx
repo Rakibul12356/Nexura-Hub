@@ -2,11 +2,11 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import { Navbar } from "@/components/dashboard/navbar";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { useAppSelector } from "@/store/hooks";
+import { useUiStore } from "@/store/useUiStore";
 import { cn } from "@/lib/utils";
 
 export const DashboardLayout: React.FC = () => {
-  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
 
   return (
     <div className="h-full min-h-screen flex flex-col bg-muted/10">

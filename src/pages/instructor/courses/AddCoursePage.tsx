@@ -15,10 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppDispatch } from "@/store/hooks";
-import { addCourse } from "@/store/slices/dashboardSlice";
-import { toast } from "react-toastify";
-import { Course } from "@/types/course";
+import { useCreateCourseMutation } from "@/hooks/queries/useCoursesQuery";
 
 const formSchema = z.object({
   title: z.string().min(1, {
@@ -33,7 +30,7 @@ type AddCourseFormValues = z.infer<typeof formSchema>;
 
 export const AddCoursePage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const createCourseMutation = useCreateCourseMutation();
 
   const form = useForm<AddCourseFormValues>({
     resolver: zodResolver(formSchema),
@@ -45,44 +42,34 @@ export const AddCoursePage: React.FC = () => {
 
   const { isSubmitting, isValid } = form.formState;
 
-  const onSubmit = async (values: AddCourseFormValues) => {
-    try {
-      const newCourseId = Date.now();
-      const newCourse: Course = {
-        id: newCourseId,
-        slug: values.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+  const onSubmit = (values: AddCourseFormValues) => {
+    createCourseMutation.mutate(
+      {
         title: values.title,
         description: values.description,
-        subtitle: values.description,
-        category: "Development",
-        thumbnail: "/assets/images/courses/course_1.png",
-        price: 49,
+        category: "Web Development",
+        thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+        price: 3999,
         isPublished: false,
-        totalChapters: 0,
-        progress: 0,
-        modules: [],
-      };
-
-      dispatch(addCourse(newCourse));
-      toast.success("Course created! Customize details now.");
-      navigate(`/dashboard/courses/${newCourseId}`);
-    } catch {
-      toast.error("Something went wrong");
-    }
+      },
+      {
+        onSuccess: (newCourse) => {
+          navigate(`/dashboard/courses/${newCourse.id}/edit`);
+        },
+      }
+    );
   };
 
   return (
-    <div className="max-w-5xl mx-auto flex md:items-center md:justify-center flex-1 p-6">
-      <div className="max-w-full w-[536px] bg-card p-8 rounded-2xl border shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Name Your Course</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            What would you like to name your course? Don&apos;t worry, you can change this later.
-          </p>
-        </div>
+    <div className="max-w-5xl mx-auto flex md:items-center md:justify-center h-full p-6">
+      <div className="w-full">
+        <h1 className="text-2xl font-bold">Name your course</h1>
+        <p className="text-sm text-muted-foreground">
+          What would you like to name your course? Don&apos;t worry, you can change this later.
+        </p>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mt-8">
             <FormField
               control={form.control}
               name="title"
@@ -91,11 +78,12 @@ export const AddCoursePage: React.FC = () => {
                   <FormLabel>Course Title</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={isSubmitting}
-                      placeholder="e.g. 'Advanced React & Next.js Masterclass'"
+                      disabled={isSubmitting || createCourseMutation.isPending}
+                      placeholder="e.g. 'Advanced Web Development'"
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>What will you teach in this course?</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -109,30 +97,24 @@ export const AddCoursePage: React.FC = () => {
                   <FormLabel>Course Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Write a brief overview of what students will achieve..."
-                      className="resize-none"
-                      rows={4}
+                      disabled={isSubmitting || createCourseMutation.isPending}
+                      placeholder="e.g. 'This course will cover...'"
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Write a concise overview of your course objectives
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex items-center gap-x-3 pt-2">
-              <Button asChild variant="outline" type="button">
-                <Link to="/dashboard/courses">Cancel</Link>
-              </Button>
-              <Button
-                type="submit"
-                disabled={!isValid || isSubmitting}
-                className="bg-sky-600 hover:bg-sky-700"
-              >
-                Continue to Course Setup
+            <div className="flex items-center gap-x-2">
+              <Link to="/dashboard/courses">
+                <Button type="button" variant="ghost">
+                  Cancel
+                </Button>
+              </Link>
+              <Button type="submit" disabled={!isValid || isSubmitting || createCourseMutation.isPending}>
+                {createCourseMutation.isPending ? "Creating..." : "Continue"}
               </Button>
             </div>
           </form>

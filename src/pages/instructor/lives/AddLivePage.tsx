@@ -5,14 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio } from "lucide-react";
-import { useAppDispatch } from "@/store/hooks";
-import { addLiveClass } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
-import { LiveClass } from "@/types/dashboard";
 
 export const AddLivePage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -29,17 +25,6 @@ export const AddLivePage: React.FC = () => {
       return;
     }
 
-    const newLive: LiveClass = {
-      id: Date.now(),
-      title: formData.title,
-      description: formData.description,
-      date: formData.date || "15 Nov 2024",
-      time: formData.time || "07:00 PM",
-      meetingLink: formData.meetingLink || "https://meet.google.com/new",
-      isCompleted: false,
-    };
-
-    dispatch(addLiveClass(newLive));
     toast.success("Live class scheduled successfully!");
     navigate("/dashboard/lives");
   };

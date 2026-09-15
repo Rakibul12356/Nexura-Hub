@@ -1,16 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import {
-  toggleUserStatus,
-  updateUserRole,
-  deleteUser,
-} from "@/store/slices/adminSlice";
 import { formatPrice } from "@/lib/formatPrice";
 import { ManagedUser } from "@/types/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -30,27 +24,46 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Search,
   MoreHorizontal,
-  Shield,
   ShieldCheck,
   UserX,
   UserCheck,
   GraduationCap,
   Users,
-  Mail,
   Trash2,
-  CheckCircle2,
-  AlertCircle,
+  Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
-
 import { exportToCsv } from "@/lib/exportToCsv";
-import { Download } from "lucide-react";
+
+const initialManagedUsers: ManagedUser[] = [
+  {
+    id: 1,
+    firstName: "Rahim",
+    lastName: "Ahmed",
+    email: "rahim@example.com",
+    role: "student",
+    status: "active",
+    joinDate: "2024-01-10",
+    enrolledCoursesCount: 3,
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+  },
+  {
+    id: 101,
+    firstName: "Tapas",
+    lastName: "Adhikary",
+    email: "tapas@nexurahub.com",
+    role: "instructor",
+    status: "active",
+    joinDate: "2023-11-05",
+    totalEarnings: 85000,
+    createdCoursesCount: 4,
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+  },
+];
 
 export const AdminUsersPage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { users } = useAppSelector((state) => state.admin);
-
+  const [users, setUsers] = useState<ManagedUser[]>(initialManagedUsers);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoleTab, setSelectedRoleTab] = useState("all");
 
@@ -78,7 +91,9 @@ export const AdminUsersPage: React.FC = () => {
 
   const handleToggleStatus = (user: ManagedUser) => {
     const nextStatus = user.status === "active" ? "suspended" : "active";
-    dispatch(toggleUserStatus({ userId: user.id, status: nextStatus }));
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, status: nextStatus } : u))
+    );
     toast.success(
       `User ${user.firstName} ${user.lastName} has been ${
         nextStatus === "active" ? "activated" : "suspended"
@@ -87,7 +102,9 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   const handleChangeRole = (user: ManagedUser, newRole: ManagedUser["role"]) => {
-    dispatch(updateUserRole({ userId: user.id, role: newRole }));
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
+    );
     toast.success(`Role for ${user.firstName} changed to ${newRole}`);
   };
 
@@ -96,66 +113,63 @@ export const AdminUsersPage: React.FC = () => {
       `Are you sure you want to remove user ${user.firstName} ${user.lastName}?`
     );
     if (ok) {
-      dispatch(deleteUser(user.id));
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
       toast.success("User account removed");
     }
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage all platform students, instructors, and administrators ({users.length} total)
+          <p className="text-sm text-muted-foreground">
+            Manage student accounts, instructors, role permissions, and access status.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={handleExportUsersCsv} variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" /> Export Users CSV
-          </Button>
+        <Button variant="outline" onClick={handleExportUsersCsv}>
+          <Download className="h-4 w-4 mr-2" /> Export CSV
+        </Button>
+      </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <Badge variant="outline" className="py-1 px-2.5 bg-card">
-              <Users className="h-3.5 w-3.5 mr-1 text-sky-500" /> {students.length} Students
-            </Badge>
-            <Badge variant="outline" className="py-1 px-2.5 bg-card">
-              <GraduationCap className="h-3.5 w-3.5 mr-1 text-indigo-500" /> {instructors.length} Instructors
-            </Badge>
-            <Badge variant="outline" className="py-1 px-2.5 bg-card">
-              <ShieldCheck className="h-3.5 w-3.5 mr-1 text-purple-500" /> {admins.length} Admins
-            </Badge>
+      {/* Role Stats Widgets */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl border bg-card shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-sky-500/10 text-sky-600">
+            <GraduationCap className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Students</p>
+            <h3 className="text-xl font-bold">{students.length}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl border bg-card shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-purple-500/10 text-purple-600">
+            <Users className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Instructors</p>
+            <h3 className="text-xl font-bold">{instructors.length}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl border bg-card shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-lg bg-amber-500/10 text-amber-600">
+            <ShieldCheck className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Admins</p>
+            <h3 className="text-xl font-bold">{admins.length}</h3>
           </div>
         </div>
       </div>
 
-      {/* Tabs & Search Filter */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <Tabs
-          value={selectedRoleTab}
-          onValueChange={setSelectedRoleTab}
-          className="w-full sm:w-auto"
-        >
-          <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-            <TabsTrigger value="all" className="text-xs">
-              All ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="student" className="text-xs">
-              Students ({students.length})
-            </TabsTrigger>
-            <TabsTrigger value="instructor" className="text-xs">
-              Instructors ({instructors.length})
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="text-xs">
-              Admins ({admins.length})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {/* Filters Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or email..."
             value={searchTerm}
@@ -163,125 +177,84 @@ export const AdminUsersPage: React.FC = () => {
             className="pl-9 h-9 text-xs"
           />
         </div>
+
+        <Tabs value={selectedRoleTab} onValueChange={setSelectedRoleTab} className="w-full sm:w-auto">
+          <TabsList className="grid grid-cols-4 h-9">
+            <TabsTrigger value="all" className="text-xs">All ({users.length})</TabsTrigger>
+            <TabsTrigger value="student" className="text-xs">Students</TabsTrigger>
+            <TabsTrigger value="instructor" className="text-xs">Instructors</TabsTrigger>
+            <TabsTrigger value="admin" className="text-xs">Admins</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Users Table */}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 text-xs">
-              <TableHead className="w-[280px]">User Profile</TableHead>
+            <TableRow>
+              <TableHead>User Profile</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Activity & Metrics</TableHead>
-              <TableHead>Financials</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead>Joined Date</TableHead>
+              <TableHead>Activity Stats</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                  No users found matching query.
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  No users found.
                 </TableCell>
               </TableRow>
             ) : (
               filteredUsers.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/30">
+                <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border shrink-0">
+                      <Avatar className="h-9 w-9 border">
                         <AvatarImage src={user.avatar} alt={user.firstName} />
-                        <AvatarFallback>
-                          {user.firstName[0]}
-                          {user.lastName[0]}
-                        </AvatarFallback>
+                        <AvatarFallback>{user.firstName[0]}</AvatarFallback>
                       </Avatar>
-                      <div className="space-y-0.5">
-                        <p className="font-semibold text-sm text-foreground">
+                      <div>
+                        <p className="font-semibold text-sm">
                           {user.firstName} {user.lastName}
                         </p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-3 w-3" /> {user.email}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
                   </TableCell>
-
                   <TableCell>
                     <Badge
-                      className={`text-xs capitalize font-semibold ${
+                      variant="outline"
+                      className={`capitalize ${
                         user.role === "admin"
-                          ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30"
+                          ? "border-amber-500 text-amber-600 bg-amber-500/10"
                           : user.role === "instructor"
-                          ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30"
-                          : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
+                          ? "border-purple-500 text-purple-600 bg-purple-500/10"
+                          : "border-sky-500 text-sky-600 bg-sky-500/10"
                       }`}
                     >
                       {user.role}
                     </Badge>
                   </TableCell>
-
                   <TableCell>
-                    {user.role === "instructor" ? (
-                      <div className="text-xs space-y-0.5">
-                        <span className="font-medium text-foreground">
-                          {user.createdCoursesCount || 1} Courses Created
-                        </span>
-                        <p className="text-[11px] text-muted-foreground">
-                          {user.totalStudentsCount || 0} Students Taught
-                        </p>
-                      </div>
-                    ) : user.role === "student" ? (
-                      <div className="text-xs space-y-0.5">
-                        <span className="font-medium text-foreground">
-                          {user.enrolledCoursesCount || 0} Courses Enrolled
-                        </span>
-                        <p className="text-[11px] text-muted-foreground">Active Learner</p>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-purple-600 font-semibold">System Administrator</div>
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    {user.role === "instructor" ? (
-                      <div className="text-xs space-y-0.5">
-                        <span className="font-bold text-foreground">
-                          {formatPrice(user.totalEarnings || 0)}
-                        </span>
-                        <p className="text-[11px] text-emerald-600 font-semibold">
-                          +{formatPrice(user.adminCommissionGenerated || 0)} 5% cut
-                        </p>
-                      </div>
-                    ) : user.role === "student" ? (
-                      <div className="text-xs font-semibold text-foreground">
-                        Spent: {formatPrice(user.totalSpent || 0)}
-                      </div>
-                    ) : (
-                      <div className="text-xs font-semibold text-emerald-600">Platform Treasury</div>
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge
-                      className={`text-xs capitalize font-medium ${
-                        user.status === "active"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : user.status === "pending"
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                          : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
+                    <Badge variant={user.status === "active" ? "default" : "destructive"}>
                       {user.status}
                     </Badge>
                   </TableCell>
-
-                  <TableCell className="text-xs text-muted-foreground font-mono">
-                    {user.joinDate}
+                  <TableCell className="text-xs text-muted-foreground">{user.joinDate}</TableCell>
+                  <TableCell className="text-xs">
+                    {user.role === "instructor" ? (
+                      <div>
+                        <p className="font-medium text-purple-600">{user.createdCoursesCount || 0} Courses</p>
+                        <p className="text-[10px] text-muted-foreground">{formatPrice(user.totalEarnings || 0)} Earned</p>
+                      </div>
+                    ) : (
+                      <p className="font-medium text-sky-600">{user.enrolledCoursesCount || 0} Enrolled</p>
+                    )}
                   </TableCell>
-
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -289,52 +262,34 @@ export const AdminUsersPage: React.FC = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 text-xs">
-                        <DropdownMenuItem
-                          onClick={() => handleToggleStatus(user)}
-                          className="cursor-pointer"
-                        >
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
                           {user.status === "active" ? (
                             <>
-                              <UserX className="mr-2 h-3.5 w-3.5 text-amber-500" /> Suspend Account
+                              <UserX className="h-4 w-4 mr-2 text-destructive" /> Suspend Access
                             </>
                           ) : (
                             <>
-                              <UserCheck className="mr-2 h-3.5 w-3.5 text-emerald-500" /> Activate Account
+                              <UserCheck className="h-4 w-4 mr-2 text-emerald-600" /> Activate Account
                             </>
                           )}
                         </DropdownMenuItem>
-
                         <DropdownMenuSeparator />
-
-                        <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase">
-                          Change Role
-                        </div>
-                        <DropdownMenuItem
-                          onClick={() => handleChangeRole(user, "student")}
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuItem onClick={() => handleChangeRole(user, "student")}>
                           Make Student
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleChangeRole(user, "instructor")}
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuItem onClick={() => handleChangeRole(user, "instructor")}>
                           Make Instructor
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleChangeRole(user, "admin")}
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuItem onClick={() => handleChangeRole(user, "admin")}>
                           Make Admin
                         </DropdownMenuItem>
-
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleDelete(user)}
-                          className="text-destructive focus:text-destructive cursor-pointer"
+                          className="text-destructive focus:text-destructive"
                         >
-                          <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete User
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

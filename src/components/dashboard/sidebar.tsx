@@ -1,16 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Logo } from "@/components/common/logo";
 import { SidebarRoutes } from "./sidebar-routes";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleSidebar } from "@/store/slices/uiSlice";
+import { useUiStore } from "@/store/useUiStore";
 import { Button } from "@/components/ui/button";
-import { PanelLeftClose, PanelLeft, GraduationCap } from "lucide-react";
+import { PanelLeftClose } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Sidebar: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
 
   return (
     <div className="h-full border-r flex flex-col overflow-y-auto bg-card shadow-sm select-none">
@@ -27,7 +25,7 @@ export const Sidebar: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => dispatch(toggleSidebar())}
+              onClick={toggleSidebar}
               className="h-8 w-8 text-muted-foreground hover:text-foreground hidden lg:flex"
               title="Collapse Sidebar"
             >
@@ -36,7 +34,7 @@ export const Sidebar: React.FC = () => {
           </>
         ) : (
           <button
-            onClick={() => dispatch(toggleSidebar())}
+            onClick={toggleSidebar}
             className="flex h-11 w-11 items-center justify-center rounded-lg hover:opacity-80 transition p-0.5"
             title="Expand Sidebar"
           >

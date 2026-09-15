@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 interface UploadDropzoneProps {
   isMulti?: boolean;
   label?: string;
+  endpoint?: string;
   onChange?: (url: string) => void;
   value?: string;
 }

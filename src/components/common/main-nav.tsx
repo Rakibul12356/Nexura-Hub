@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { Logo } from "./logo";
-import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, ShieldCheck, Search, MessageSquare } from "lucide-react";
+import { Menu, X, LayoutDashboard, UserCheck, LogOut, BookOpen, Search, MessageSquare } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,10 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "@/types/common";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
-import { setSearchQuery } from "@/store/slices/courseSlice";
-import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
+import { useLogoutMutation } from "@/hooks/queries/useAuthQuery";
 import NotificationCenter from "./NotificationCenter";
 
 interface MainNavProps {
@@ -29,25 +28,27 @@ interface MainNavProps {
 export const MainNav: React.FC<MainNavProps> = ({ items, children }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  const { conversations } = useAppSelector((state) => state.chat);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const conversations = useChatStore((state) => state.conversations);
+  const logoutMutation = useLogoutMutation();
 
   const totalUnreadMessages = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Successfully logged out");
-    navigate("/");
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/");
+      },
+    });
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      dispatch(setSearchQuery(searchTerm.trim()));
-      navigate("/courses");
+      navigate(`/courses?search=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 

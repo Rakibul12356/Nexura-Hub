@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { createCourseGroup } from "@/store/slices/chatSlice";
+import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useCoursesQuery } from "@/hooks/queries/useCoursesQuery";
 import { toast } from "react-toastify";
 
 interface CreateGroupModalProps {
@@ -21,9 +22,9 @@ interface CreateGroupModalProps {
 }
 
 export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) => {
-  const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
-  const { courses } = useAppSelector((state) => state.courses);
+  const createCourseGroupStore = useChatStore((state) => state.createCourseGroup);
+  const user = useAuthStore((state) => state.user);
+  const { data: courses = [] } = useCoursesQuery();
 
   const [groupName, setGroupName] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
@@ -38,19 +39,17 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
     const selectedCourse = courses.find((c) => String(c.id) === selectedCourseId);
     if (!selectedCourse) return;
 
-    dispatch(
-      createCourseGroup({
-        courseId: selectedCourse.id,
-        courseTitle: selectedCourse.title,
-        groupName: groupName.trim(),
-        instructor: {
-          id: user?.id || 101,
-          name: `${user?.firstName || "Instructor"} ${user?.lastName || ""}`.trim(),
-          avatar: user?.avatar || "https://github.com/shadcn.png",
-          role: "instructor",
-        },
-      })
-    );
+    createCourseGroupStore({
+      courseId: selectedCourse.id,
+      courseTitle: selectedCourse.title,
+      groupName: groupName.trim(),
+      instructor: {
+        id: user?.id || 101,
+        name: `${user?.firstName || "Instructor"} ${user?.lastName || ""}`.trim(),
+        avatar: user?.avatar || "https://github.com/shadcn.png",
+        role: "instructor",
+      },
+    });
 
     toast.success(`Group "${groupName}" created successfully!`);
     setGroupName("");

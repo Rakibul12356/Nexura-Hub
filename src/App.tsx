@@ -1,14 +1,16 @@
 import React from "react";
 import { RouterProvider } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "@/store";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { queryClient } from "@/lib/queryClient";
 import { router } from "@/routes";
 
 export const App: React.FC = () => {
   return (
-    <Provider store={store}>
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </Provider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 };
 

@@ -1,18 +1,15 @@
 import React from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
-import { useAppSelector } from "@/store/hooks";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useLogoutMutation } from "@/hooks/queries/useAuthQuery";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserCheck, BookOpen, Shield, LogOut } from "lucide-react";
-import { useAppDispatch } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { UserCheck, BookOpen, LogOut } from "lucide-react";
 
 export const AccountLayout: React.FC = () => {
   const location = useLocation();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useAuthStore((state) => state.user);
+  const logoutMutation = useLogoutMutation();
 
   const menu = [
     { label: "Profile", href: "/account", icon: UserCheck },
@@ -20,9 +17,11 @@ export const AccountLayout: React.FC = () => {
   ];
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Successfully logged out");
-    navigate("/");
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/");
+      },
+    });
   };
 
   return (

@@ -1,42 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio, Trash2 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateLiveClass, deleteLiveClass } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
+import { useLiveClassesQuery } from "@/hooks/queries/useDashboardQuery";
 
 export const EditLivePage: React.FC = () => {
   const { liveId } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { liveClasses } = useAppSelector((state) => state.dashboard);
+  const { data: liveClasses = [] } = useLiveClassesQuery();
 
   const live =
     liveClasses.find((l) => String(l.id) === String(liveId)) || liveClasses[0];
 
   const [formData, setFormData] = useState({
-    title: live?.title || "",
-    description: live?.description || "",
-    date: live?.date || "",
-    time: live?.time || "",
-    meetingLink: live?.meetingLink || "",
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    meetingLink: "",
   });
+
+  useEffect(() => {
+    if (live) {
+      setFormData({
+        title: live.title || "",
+        description: live.description || "",
+        date: live.date || "",
+        time: live.time || "",
+        meetingLink: live.meetingLink || "",
+      });
+    }
+  }, [live]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!live) return;
 
-    dispatch(
-      updateLiveClass({
-        ...live,
-        ...formData,
-      })
-    );
     toast.success("Live class updated successfully!");
     navigate("/dashboard/lives");
   };
@@ -44,7 +48,6 @@ export const EditLivePage: React.FC = () => {
   const handleDelete = async () => {
     const ok = await confirmDelete("Are you sure you want to delete this live class?");
     if (ok) {
-      dispatch(deleteLiveClass(live.id));
       toast.success("Live class deleted");
       navigate("/dashboard/lives");
     }

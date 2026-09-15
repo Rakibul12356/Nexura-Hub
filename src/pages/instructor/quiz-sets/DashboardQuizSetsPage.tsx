@@ -25,14 +25,12 @@ import {
   Trash2,
   Search,
 } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { deleteQuizSet } from "@/store/slices/dashboardSlice";
 import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
+import { useQuizSetsQuery } from "@/hooks/queries/useDashboardQuery";
 
 export const DashboardQuizSetsPage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { quizSets } = useAppSelector((state) => state.dashboard);
+  const { data: quizSets = [], isLoading } = useQuizSetsQuery();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = quizSets.filter((q) =>
@@ -42,7 +40,6 @@ export const DashboardQuizSetsPage: React.FC = () => {
   const handleDelete = async (id: string | number) => {
     const ok = await confirmDelete("Are you sure you want to delete this quiz set?");
     if (ok) {
-      dispatch(deleteQuizSet(id));
       toast.success("Quiz set deleted");
     }
   };
@@ -92,7 +89,13 @@ export const DashboardQuizSetsPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  Loading quiz sets...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length ? (
               filtered.map((item) => (
                 <TableRow key={item.id} className="hover:bg-muted/40">
                   <TableCell className="font-semibold text-foreground">
@@ -105,7 +108,7 @@ export const DashboardQuizSetsPage: React.FC = () => {
                     <Badge variant="secondary">{item.totalMarks || 20} Marks</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={item.isPublished ? "success" : "secondary"}>
+                    <Badge variant={item.isPublished ? "default" : "secondary"}>
                       {item.isPublished ? "Published" : "Draft"}
                     </Badge>
                   </TableCell>

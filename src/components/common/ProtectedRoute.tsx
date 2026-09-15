@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAppSelector } from "@/store/hooks";
+import { useAuthStore } from "@/store/useAuthStore";
 import PageLoader from "./page-loader";
 
 interface ProtectedRouteProps {
@@ -13,7 +13,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles,
 }) => {
   const location = useLocation();
-  const { user, isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
 
   // Prevent flicker during initial state hydration
   if (isLoading) {

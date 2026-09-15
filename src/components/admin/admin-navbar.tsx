@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MobileAdminSidebar } from "./mobile-admin-sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -11,23 +11,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Sun, Moon, ShieldCheck, ExternalLink, PlusCircle, BookOpen, PanelLeft } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
-import { toggleTheme, toggleSidebar } from "@/store/slices/uiSlice";
-import { toast } from "react-toastify";
+import { LogOut, Sun, Moon } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useUiStore } from "@/store/useUiStore";
+import { useLogoutMutation } from "@/hooks/queries/useAuthQuery";
 
 export const AdminNavbar: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
-  const theme = useAppSelector((state) => state.ui.theme);
-  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const user = useAuthStore((state) => state.user);
+  const theme = useUiStore((state) => state.theme);
+  const toggleTheme = useUiStore((state) => state.toggleTheme);
+  const logoutMutation = useLogoutMutation();
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Admin signed out successfully");
-    navigate("/login");
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/login");
+      },
+    });
   };
 
   return (
@@ -40,7 +41,7 @@ export const AdminNavbar: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => dispatch(toggleTheme())}
+          onClick={toggleTheme}
           className="text-muted-foreground hover:text-foreground"
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}

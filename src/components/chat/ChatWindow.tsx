@@ -6,10 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { sendMessage, unsendMessage, toggleMessageReaction } from "@/store/slices/chatSlice";
+import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { ChatMessage } from "@/types/chat";
-
 import { useSocket } from "@/hooks/useSocket";
 
 interface ChatWindowProps {
@@ -17,11 +16,17 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
-  const dispatch = useAppDispatch();
-  const { conversations, messages, activeConversationId, isSocketConnected, typingUsers } = useAppSelector(
-    (state) => state.chat
-  );
-  const { user } = useAppSelector((state) => state.auth);
+  const conversations = useChatStore((state) => state.conversations);
+  const messages = useChatStore((state) => state.messages);
+  const activeConversationId = useChatStore((state) => state.activeConversationId);
+  const isSocketConnected = useChatStore((state) => state.isSocketConnected);
+  const typingUsers = useChatStore((state) => state.typingUsers);
+  
+  const sendMessageStore = useChatStore((state) => state.sendMessage);
+  const unsendMessageStore = useChatStore((state) => state.unsendMessage);
+  const toggleMessageReactionStore = useChatStore((state) => state.toggleMessageReaction);
+
+  const user = useAuthStore((state) => state.user);
   const { emitSendMessage, emitTypingStatus, emitReaction } = useSocket();
 
   const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
@@ -29,14 +34,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
   const handleToggleReaction = (messageId: string, emoji: string) => {
     if (!activeConversationId) return;
     const currentUserId = user?.id || "user-1";
-    dispatch(
-      toggleMessageReaction({
-        conversationId: activeConversationId,
-        messageId,
-        emoji,
-        userId: currentUserId,
-      })
-    );
+    toggleMessageReactionStore({
+      conversationId: activeConversationId,
+      messageId,
+      emoji,
+      userId: currentUserId,
+    });
     emitReaction(activeConversationId, messageId, emoji);
   };
 
@@ -120,15 +123,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
       replyTo: replyData,
     };
 
-    dispatch(
-      sendMessage({
-        conversationId: activeConversationId,
-        content: inputMessage.trim(),
-        imageUrl: selectedImage || undefined,
-        replyTo: replyData,
-        sender: senderObj,
-      })
-    );
+    sendMessageStore({
+      conversationId: activeConversationId,
+      content: inputMessage.trim(),
+      imageUrl: selectedImage || undefined,
+      replyTo: replyData,
+      sender: senderObj,
+    });
 
     // Emit via WebSocket Client
     emitSendMessage(activeConversationId, socketMessageData);
@@ -144,7 +145,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
 
   const handleUnsend = (messageId: string) => {
     if (!activeConversationId) return;
-    dispatch(unsendMessage({ conversationId: activeConversationId, messageId }));
+    unsendMessageStore({ conversationId: activeConversationId, messageId });
   };
 
   const currentTypingUsers = (activeConversationId ? typingUsers[activeConversationId] : []) || [];
@@ -495,4 +496,3 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
 };
 
 export default ChatWindow;
-
