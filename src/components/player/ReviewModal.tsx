@@ -11,21 +11,38 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 import { toast } from "react-toastify";
+import { useCreateReviewMutation } from "@/hooks/queries/useCoursesQuery";
 
-export const ReviewModal: React.FC = () => {
+interface ReviewModalProps {
+  courseId?: string | number;
+}
+
+export const ReviewModal: React.FC<ReviewModalProps> = ({ courseId }) => {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const createReview = useCreateReviewMutation(courseId || "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!courseId) {
+      toast.error("Course is not available for review yet.");
+      return;
+    }
     if (!comment.trim()) {
       toast.error("Please enter a review comment");
       return;
     }
-    toast.success("Thank you for your feedback! Review submitted.");
-    setOpen(false);
-    setComment("");
+    createReview.mutate(
+      { rating, comment: comment.trim() },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          setComment("");
+          setRating(5);
+        },
+      }
+    );
   };
 
   return (
@@ -71,14 +88,10 @@ export const ReviewModal: React.FC = () => {
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-sky-600 hover:bg-sky-700">
+            <Button type="submit" disabled={createReview.isPending} className="bg-sky-600 hover:bg-sky-700">
               Submit Review
             </Button>
           </DialogFooter>

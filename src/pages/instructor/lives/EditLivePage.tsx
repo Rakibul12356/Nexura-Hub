@@ -5,14 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio, Trash2 } from "lucide-react";
-import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
-import { useLiveClassesQuery } from "@/hooks/queries/useDashboardQuery";
+import { useLiveClassesQuery, useUpdateLiveMutation, useDeleteLiveMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const EditLivePage: React.FC = () => {
   const { liveId } = useParams();
   const navigate = useNavigate();
   const { data: liveClasses = [] } = useLiveClassesQuery();
+  const updateLive = useUpdateLiveMutation();
+  const deleteLive = useDeleteLiveMutation();
 
   const live =
     liveClasses.find((l) => String(l.id) === String(liveId)) || liveClasses[0];
@@ -40,16 +41,19 @@ export const EditLivePage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!live) return;
-
-    toast.success("Live class updated successfully!");
-    navigate("/dashboard/lives");
+    updateLive.mutate(
+      { id: live.id, data: formData },
+      { onSuccess: () => navigate("/dashboard/lives") }
+    );
   };
 
   const handleDelete = async () => {
+    if (!live) return;
     const ok = await confirmDelete("Are you sure you want to delete this live class?");
     if (ok) {
-      toast.success("Live class deleted");
-      navigate("/dashboard/lives");
+      deleteLive.mutate(live.id, {
+        onSuccess: () => navigate("/dashboard/lives"),
+      });
     }
   };
 
@@ -141,8 +145,8 @@ export const EditLivePage: React.FC = () => {
             <Button asChild variant="outline">
               <Link to="/dashboard/lives">Cancel</Link>
             </Button>
-            <Button type="submit" className="bg-sky-600 hover:bg-sky-700">
-              Save Changes
+            <Button type="submit" disabled={updateLive.isPending} className="bg-sky-600 hover:bg-sky-700">
+              {updateLive.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

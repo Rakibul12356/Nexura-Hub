@@ -28,6 +28,12 @@ export interface RegisterCredentials {
   role: Role;
 }
 
+export interface AuthTokens {
+  user: User;
+  token: string;
+  refreshToken?: string;
+}
+
 export interface AuthState {
   user: User | null;
   token: string | null;

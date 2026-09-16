@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { CreateGroupModal } from "./CreateGroupModal";
+import { chatService } from "@/services/chatService";
 
 interface ChatSidebarProps {
   className?: string;
@@ -117,6 +118,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ className, onSelectCon
                 key={conv.id}
                 onClick={() => {
                   setActiveConversation(conv.id);
+                  chatService.markRead(conv.id).catch(() => undefined);
                   onSelectConversation?.();
                 }}
                 className={cn(

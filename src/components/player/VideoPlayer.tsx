@@ -9,10 +9,17 @@ interface VideoPlayerProps {
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
-  url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+  url,
   onTimeUpdate,
   onEnded,
 }) => {
+  if (!url) {
+    return (
+      <div className="aspect-video w-full rounded-2xl border border-dashed bg-muted/30 flex items-center justify-center text-sm text-muted-foreground">
+        No video attached to this lesson yet.
+      </div>
+    );
+  }
   return <HlsPlayer src={url} onTimeUpdate={onTimeUpdate} onEnded={onEnded} />;
 };
 

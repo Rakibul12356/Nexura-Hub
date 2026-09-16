@@ -263,7 +263,7 @@ export const AdminCoursesPage: React.FC = () => {
                         <DropdownMenuItem onClick={() => navigate(`/courses/${course.id}`)}>
                           <Eye className="h-4 w-4 mr-2" /> View Course
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate(`/dashboard/courses/${course.id}/edit`)}>
+                        <DropdownMenuItem onClick={() => navigate(`/dashboard/courses/${course.id}`)}>
                           <Pencil className="h-4 w-4 mr-2" /> Edit Course
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

@@ -23,7 +23,9 @@ export default defineConfig({
     include: ["react-redux", "react", "react-dom", "react-router-dom"],
   },
   server: {
+    host: "localhost",
     port: 5173,
-    open: true,
+    strictPort: true,
+    open: "http://localhost:5173/",
   },
 });

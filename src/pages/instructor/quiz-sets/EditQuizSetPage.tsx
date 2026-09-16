@@ -8,50 +8,36 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   BookA,
-  Pencil,
   PlusCircle,
   Trash2,
   HelpCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { QuizQuestion, QuizSet } from "@/types/course";
-import { useQuizSetsQuery } from "@/hooks/queries/useDashboardQuery";
+import { QuizQuestion } from "@/types/course";
+import {
+  useQuizSetQuery,
+  useUpdateQuizSetMutation,
+  useAddQuizQuestionMutation,
+  useDeleteQuizQuestionMutation,
+} from "@/hooks/queries/useDashboardQuery";
 
 export const EditQuizSetPage: React.FC = () => {
   const { quizSetId } = useParams();
-  const { data: quizSets = [] } = useQuizSetsQuery();
-
-  const quizSet =
-    quizSets.find((q) => String(q.id) === String(quizSetId)) || quizSets[0];
+  const { data: quizSet, isLoading } = useQuizSetQuery(quizSetId);
+  const updateQuizSet = useUpdateQuizSetMutation();
+  const addQuestion = useAddQuizQuestionMutation(quizSetId || "");
+  const deleteQuestion = useDeleteQuizQuestionMutation(quizSetId || "");
 
   const [title, setTitle] = useState(quizSet?.title || "");
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isPublished, setIsPublished] = useState<boolean>(quizSet?.isPublished ?? true);
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>(
-    quizSet?.questions || [
-      {
-        id: "q-1",
-        title: "Which hook is used for side effects in React functional components?",
-        description: "Standard lifecycle side effect handler.",
-        points: 5,
-        options: [
-          { id: "opt-1", label: "useEffect", isCorrect: true },
-          { id: "opt-2", label: "useState", isCorrect: false },
-          { id: "opt-3", label: "useReducer", isCorrect: false },
-          { id: "opt-4", label: "useMemo", isCorrect: false },
-        ],
-      },
-    ]
-  );
+  const [questions, setQuestions] = useState<QuizQuestion[]>(quizSet?.questions || []);
 
   useEffect(() => {
     if (quizSet) {
       setTitle(quizSet.title || "");
       setIsPublished(quizSet.isPublished ?? true);
-      if (quizSet.questions?.length) {
-        setQuestions(quizSet.questions);
-      }
+      setQuestions(quizSet.questions || []);
     }
   }, [quizSet]);
 
@@ -64,9 +50,16 @@ export const EditQuizSetPage: React.FC = () => {
   ]);
 
   const handleSaveSet = () => {
-    toast.success("Quiz set updated!");
-    setIsEditingTitle(false);
+    if (!quizSetId) return;
+    updateQuizSet.mutate({
+      id: quizSetId,
+      data: { title, isPublished, description: quizSet?.description },
+    });
   };
+
+  if (isLoading) {
+    return <div className="p-6 text-center text-muted-foreground">Loading quiz set...</div>;
+  }
 
   const handleAddQuestion = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,32 +68,31 @@ export const EditQuizSetPage: React.FC = () => {
       return;
     }
 
-    const newQ: QuizQuestion = {
-      id: `q-${Date.now()}`,
-      title: newQuestionTitle.trim(),
-      points: 5,
-      options: newQuestionOptions.map((opt, idx) => ({
-        id: `opt-${idx}-${Date.now()}`,
-        label: opt.label || `Option ${idx + 1}`,
-        isCorrect: opt.isCorrect,
-      })),
-    };
-
-    const updated = [...questions, newQ];
-    setQuestions(updated);
-    setNewQuestionTitle("");
-    setNewQuestionOptions([
-      { label: "", isCorrect: true },
-      { label: "", isCorrect: false },
-      { label: "", isCorrect: false },
-      { label: "", isCorrect: false },
-    ]);
-    toast.success("Question added to quiz set!");
+    addQuestion.mutate(
+      {
+        title: newQuestionTitle.trim(),
+        points: 5,
+        options: newQuestionOptions.map((opt) => ({
+          label: opt.label || "Option",
+          isCorrect: opt.isCorrect,
+        })),
+      },
+      {
+        onSuccess: () => {
+          setNewQuestionTitle("");
+          setNewQuestionOptions([
+            { label: "", isCorrect: true },
+            { label: "", isCorrect: false },
+            { label: "", isCorrect: false },
+            { label: "", isCorrect: false },
+          ]);
+        },
+      }
+    );
   };
 
   const handleDeleteQuestion = (id: string | number) => {
-    setQuestions((prev) => prev.filter((q) => q.id !== id));
-    toast.info("Question removed");
+    deleteQuestion.mutate(id);
   };
 
   return (
@@ -122,7 +114,7 @@ export const EditQuizSetPage: React.FC = () => {
           </div>
         </div>
 
-        <Button onClick={handleSaveSet} className="bg-sky-600 hover:bg-sky-700">
+        <Button onClick={handleSaveSet} disabled={updateQuizSet.isPending} className="bg-sky-600 hover:bg-sky-700">
           Save Quiz Set
         </Button>
       </div>
@@ -217,7 +209,7 @@ export const EditQuizSetPage: React.FC = () => {
               ))}
             </div>
 
-            <Button type="submit" size="sm" className="w-full bg-sky-600 hover:bg-sky-700">
+            <Button type="submit" size="sm" disabled={addQuestion.isPending} className="w-full bg-sky-600 hover:bg-sky-700">
               Add Question
             </Button>
           </form>

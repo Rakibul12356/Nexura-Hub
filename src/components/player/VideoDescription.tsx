@@ -10,28 +10,27 @@ interface VideoDescriptionProps {
   resources?: LessonResource[];
   quizTitle?: string;
   quizzes?: any[];
+  quizId?: string | number;
+  lessonId?: string | number;
   isQuizModalOpen?: boolean;
   setIsQuizModalOpen?: (open: boolean) => void;
   onQuizCompleted?: (score: number, passed: boolean) => void;
   hasQuiz?: boolean;
 }
 
-const defaultResources: LessonResource[] = [
-  { id: "1", title: "lecture-01-starter-code.zip", size: "2.4 MB", url: "https://github.com" },
-  { id: "2", title: "react-architecture-cheatsheet.pdf", size: "1.1 MB", url: "https://react.dev" },
-];
-
 export const VideoDescription: React.FC<VideoDescriptionProps> = ({
   description,
-  resources = defaultResources,
+  resources = [],
   quizTitle,
   quizzes,
+  quizId,
+  lessonId,
   isQuizModalOpen,
   setIsQuizModalOpen,
   onQuizCompleted,
   hasQuiz = true,
 }) => {
-  const displayResources = resources && resources.length > 0 ? resources : defaultResources;
+  const displayResources = resources || [];
 
   return (
     <div className="mt-6">
@@ -65,17 +64,7 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
               {description ? (
                 <p className="whitespace-pre-line text-foreground/90">{description}</p>
               ) : (
-                <>
-                  <p>
-                    In this introductory lecture, we explore the core building blocks of modern frontend development. You will learn how modern UI libraries like React work under the hood with virtual DOM diffing algorithms.
-                  </p>
-                  <h4 className="text-base font-semibold text-foreground mt-4">Key Takeaways:</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>Understanding declarative vs imperative UI paradigms</li>
-                    <li>Component tree architecture and unidirectional data flow</li>
-                    <li>Setup with Vite, TypeScript, and modern ESLint toolchains</li>
-                  </ul>
-                </>
+                <p>Follow along with the video and complete any associated assignments.</p>
               )}
             </div>
           </TabsContent>
@@ -87,6 +76,8 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
               </p>
               <QuizModal
                 quizzes={quizzes}
+                quizId={quizId}
+                lessonId={lessonId}
                 isOpen={isQuizModalOpen}
                 onOpenChange={setIsQuizModalOpen}
                 onComplete={onQuizCompleted}
@@ -96,7 +87,9 @@ export const VideoDescription: React.FC<VideoDescriptionProps> = ({
           )}
 
           <TabsContent value="resources" className="space-y-3">
-            {displayResources.map((res) => (
+            {displayResources.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No resources attached to this lesson.</p>
+            ) : displayResources.map((res) => (
               <div
                 key={res.id}
                 className="flex items-center justify-between p-3 border rounded-xl bg-card hover:bg-muted/30 transition-colors"

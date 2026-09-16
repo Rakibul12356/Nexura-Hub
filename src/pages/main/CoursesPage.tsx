@@ -41,7 +41,7 @@ const PRICE_OPTIONS = [
 
 export const CoursesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { data: courses = [], isLoading } = useCoursesQuery();
+  const { data: courses = [], isLoading, isError } = useCoursesQuery();
   const { data: categories = [] } = useCategoriesQuery();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,7 +87,7 @@ export const CoursesPage: React.FC = () => {
         if (
           searchQuery &&
           !course.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !course.category.toLowerCase().includes(searchQuery.toLowerCase())
+          !(course.category || "").toLowerCase().includes(searchQuery.toLowerCase())
         ) {
           return false;
         }
@@ -96,8 +96,8 @@ export const CoursesPage: React.FC = () => {
           selectedCategories.length > 0 &&
           !selectedCategories.some(
             (c) =>
-              c.toLowerCase() === course.category.toLowerCase() ||
-              c.toLowerCase() === course.category.toLowerCase().replace(/ & /g, "-").replace(/\s+/g, "-")
+              c.toLowerCase() === (course.category || "").toLowerCase() ||
+              c.toLowerCase() === (course.category || "").toLowerCase().replace(/ & /g, "-").replace(/\s+/g, "-")
           )
         ) {
           return false;
@@ -294,6 +294,13 @@ export const CoursesPage: React.FC = () => {
         <div className="md:col-span-9 w-full">
           {isLoading ? (
             <div className="py-16 text-center text-muted-foreground">Loading courses...</div>
+          ) : isError ? (
+            <div className="py-16 text-center space-y-3 bg-muted/20 rounded-2xl border">
+              <h3 className="font-bold text-lg">Could not load courses</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                The catalog API is unavailable right now. Please try again in a moment.
+              </p>
+            </div>
           ) : filteredCourses.length === 0 ? (
             <div className="py-16 text-center space-y-3 bg-muted/20 rounded-2xl border">
               <h3 className="font-bold text-lg">No courses match your criteria</h3>

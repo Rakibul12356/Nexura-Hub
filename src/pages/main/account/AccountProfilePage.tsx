@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUpdateProfileMutation } from "@/hooks/queries/useAuthQuery";
+import { useUpdateProfileMutation, useChangePasswordMutation } from "@/hooks/queries/useAuthQuery";
 import { toast } from "react-toastify";
 
 export const AccountProfilePage: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const updateProfileMutation = useUpdateProfileMutation();
+  const changePasswordMutation = useChangePasswordMutation();
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "Jenny",
@@ -38,8 +39,14 @@ export const AccountProfilePage: React.FC = () => {
       toast.error("New passwords do not match!");
       return;
     }
-    toast.success("Password changed successfully!");
-    setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    changePasswordMutation.mutate(
+      { currentPassword: passwordData.oldPassword, newPassword: passwordData.newPassword },
+      {
+        onSuccess: () => {
+          setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        },
+      }
+    );
   };
 
   return (
@@ -203,7 +210,9 @@ export const AccountProfilePage: React.FC = () => {
                   required
                 />
               </div>
-              <Button type="submit">Save Password</Button>
+              <Button type="submit" disabled={changePasswordMutation.isPending}>
+                {changePasswordMutation.isPending ? "Saving..." : "Save Password"}
+              </Button>
             </form>
           </div>
         </div>
