@@ -26,12 +26,12 @@ import {
   Search,
   ExternalLink,
 } from "lucide-react";
-import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
-import { useLiveClassesQuery } from "@/hooks/queries/useDashboardQuery";
+import { useLiveClassesQuery, useDeleteLiveMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const DashboardLivesPage: React.FC = () => {
   const { data: liveClasses = [], isLoading } = useLiveClassesQuery();
+  const deleteLive = useDeleteLiveMutation();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = liveClasses.filter(
@@ -43,7 +43,7 @@ export const DashboardLivesPage: React.FC = () => {
   const handleDelete = async (id: string | number) => {
     const ok = await confirmDelete("Are you sure you want to delete this live class?");
     if (ok) {
-      toast.success("Live class deleted");
+      deleteLive.mutate(id);
     }
   };
 

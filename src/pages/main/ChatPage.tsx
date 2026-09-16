@@ -5,15 +5,30 @@ import { ChatWindow } from "@/components/chat/ChatWindow";
 import { cn } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { useSocket } from "@/hooks/useSocket";
+import { useConversationsQuery, useConversationMessagesQuery } from "@/hooks/queries/useAdminQuery";
+import { useChatStore } from "@/store/useChatStore";
+import { useEffect } from "react";
 
 export const ChatPage: React.FC = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const location = useLocation();
   const { user } = useAppSelector((state) => state.auth);
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const hydrateConversations = useChatStore((s) => s.hydrateConversations);
+  const hydrateMessages = useChatStore((s) => s.hydrateMessages);
+  const activeConversationId = useChatStore((s) => s.activeConversationId);
+  const { data: conversations } = useConversationsQuery(user?.role !== "admin");
+  const { data: messages } = useConversationMessagesQuery(activeConversationId);
 
-  // Initialize real-time WebSocket connection
   useSocket();
+
+  useEffect(() => {
+    if (conversations) hydrateConversations(conversations);
+  }, [conversations, hydrateConversations]);
+
+  useEffect(() => {
+    if (activeConversationId && messages) hydrateMessages(activeConversationId, messages);
+  }, [activeConversationId, messages, hydrateMessages]);
 
   if (user?.role === "admin") {
     return <Navigate to="/admin" replace />;

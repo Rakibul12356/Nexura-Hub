@@ -1,9 +1,3 @@
-/**
- * Centralized API Endpoints Configuration
- * Contains all endpoint routes for the website
- */
-
-// Auth Endpoints
 export const AUTH_ENDPOINTS = {
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
@@ -17,7 +11,6 @@ export const AUTH_ENDPOINTS = {
   VERIFY_EMAIL: "/auth/verify-email",
 } as const;
 
-// Course Endpoints
 export const COURSE_ENDPOINTS = {
   LIST: "/courses",
   DETAILS: (id: string | number) => `/courses/${id}`,
@@ -26,47 +19,46 @@ export const COURSE_ENDPOINTS = {
   DELETE: (id: string | number) => `/courses/${id}`,
   PUBLISH: (id: string | number) => `/courses/${id}/publish`,
   UNPUBLISH: (id: string | number) => `/courses/${id}/unpublish`,
-  REORDER_MODULES: (courseId: string | number) => `/courses/${courseId}/modules/reorder`,
+  REORDER_MODULES: (id: string | number) => `/courses/${id}/modules/reorder`,
   ENROLL: (id: string | number) => `/courses/${id}/enroll`,
   REVIEWS: (id: string | number) => `/courses/${id}/reviews`,
+  ENROLLMENTS: (id: string | number) => `/courses/${id}/enrollments`,
 } as const;
 
-// Module Endpoints
 export const MODULE_ENDPOINTS = {
   LIST: (courseId: string | number) => `/courses/${courseId}/modules`,
-  DETAILS: (moduleId: string | number) => `/modules/${moduleId}`,
+  DETAILS: (id: string | number) => `/modules/${id}`,
   CREATE: (courseId: string | number) => `/courses/${courseId}/modules`,
-  UPDATE: (moduleId: string | number) => `/modules/${moduleId}`,
-  DELETE: (moduleId: string | number) => `/modules/${moduleId}`,
-  REORDER_LESSONS: (moduleId: string | number) => `/modules/${moduleId}/lessons/reorder`,
+  UPDATE: (id: string | number) => `/modules/${id}`,
+  DELETE: (id: string | number) => `/modules/${id}`,
+  REORDER_LESSONS: (id: string | number) => `/modules/${id}/lessons/reorder`,
 } as const;
 
-// Lesson Endpoints
 export const LESSON_ENDPOINTS = {
-  DETAILS: (lessonId: string | number) => `/lessons/${lessonId}`,
+  DETAILS: (id: string | number) => `/lessons/${id}`,
   CREATE: (moduleId: string | number) => `/modules/${moduleId}/lessons`,
-  UPDATE: (lessonId: string | number) => `/lessons/${lessonId}`,
-  DELETE: (lessonId: string | number) => `/lessons/${lessonId}`,
-  ATTACH_RESOURCE: (lessonId: string | number) => `/lessons/${lessonId}/resources`,
-  DELETE_RESOURCE: (lessonId: string | number, resourceId: string | number) =>
-    `/lessons/${lessonId}/resources/${resourceId}`,
-  TOGGLE_COMPLETE: (lessonId: string | number) => `/lessons/${lessonId}/complete`,
+  UPDATE: (id: string | number) => `/lessons/${id}`,
+  DELETE: (id: string | number) => `/lessons/${id}`,
+  ATTACH_RESOURCE: (id: string | number) => `/lessons/${id}/resources`,
+  DELETE_RESOURCE: (id: string | number, resourceId: string | number) =>
+    `/lessons/${id}/resources/${resourceId}`,
+  TOGGLE_COMPLETE: (id: string | number) => `/lessons/${id}/complete`,
+  NOTES: (id: string | number) => `/lessons/${id}/notes`,
+  DELETE_NOTE: (id: string | number, noteId: string | number) => `/lessons/${id}/notes/${noteId}`,
+  DISCUSSIONS: (id: string | number) => `/lessons/${id}/discussions`,
 } as const;
 
-// Quiz Endpoints
 export const QUIZ_ENDPOINTS = {
   LIST: "/quizzes",
-  DETAILS: (quizId: string | number) => `/quizzes/${quizId}`,
+  DETAILS: (id: string | number) => `/quizzes/${id}`,
   CREATE: "/quizzes",
-  UPDATE: (quizId: string | number) => `/quizzes/${quizId}`,
-  DELETE: (quizId: string | number) => `/quizzes/${quizId}`,
-  ADD_QUESTION: (quizId: string | number) => `/quizzes/${quizId}/questions`,
-  DELETE_QUESTION: (quizId: string | number, qId: string | number) =>
-    `/quizzes/${quizId}/questions/${qId}`,
-  SUBMIT: (quizId: string | number) => `/quizzes/${quizId}/submit`,
+  UPDATE: (id: string | number) => `/quizzes/${id}`,
+  DELETE: (id: string | number) => `/quizzes/${id}`,
+  ADD_QUESTION: (id: string | number) => `/quizzes/${id}/questions`,
+  DELETE_QUESTION: (id: string | number, qId: string | number) => `/quizzes/${id}/questions/${qId}`,
+  SUBMIT: (id: string | number) => `/quizzes/${id}/submit`,
 } as const;
 
-// Category Endpoints
 export const CATEGORY_ENDPOINTS = {
   LIST: "/categories",
   DETAILS: (id: string | number) => `/categories/${id}`,
@@ -75,48 +67,115 @@ export const CATEGORY_ENDPOINTS = {
   DELETE: (id: string | number) => `/categories/${id}`,
 } as const;
 
-// User Management Endpoints
 export const USER_ENDPOINTS = {
   LIST: "/users",
   DETAILS: (id: string | number) => `/users/${id}`,
   UPDATE_ROLE: (id: string | number) => `/users/${id}/role`,
+  UPDATE_STATUS: (id: string | number) => `/users/${id}/status`,
   DELETE: (id: string | number) => `/users/${id}`,
 } as const;
 
-// Enrollment Endpoints
 export const ENROLLMENT_ENDPOINTS = {
   MY_COURSES: "/user/enrolled-courses",
   ENROLL: "/enrollments",
-  STATUS: (courseId: string | number) => `/enrollments/${courseId}/status`,
+  STATUS: (id: string | number) => `/enrollments/${id}/status`,
 } as const;
 
-// Analytics Endpoints
 export const ANALYTICS_ENDPOINTS = {
   OVERVIEW: "/analytics/overview",
+  ADMIN_OVERVIEW: "/admin/overview",
   REVENUE: "/analytics/revenue",
   INSTRUCTOR_STATS: "/analytics/instructor",
   STUDENT_PROGRESS: "/analytics/student-progress",
 } as const;
 
-// Media & Upload Endpoints
 export const MEDIA_ENDPOINTS = {
   UPLOAD_IMAGE: "/upload/image",
+  UPLOAD_AVATAR: "/upload/avatar",
   UPLOAD_PDF: "/upload/pdf",
   UPLOAD_VIDEO: "/upload/video",
   UPLOAD_FILE: "/upload/file",
   DELETE_FILE: "/upload/delete",
 } as const;
 
-// Dashboard Endpoints
 export const DASHBOARD_ENDPOINTS = {
   STATS: "/dashboard/stats",
   INSTRUCTOR_COURSES: "/dashboard/courses",
   LIVE_CLASSES: "/dashboard/lives",
   QUIZ_SETS: "/dashboard/quiz-sets",
   ENROLLMENTS: "/dashboard/enrollments",
+  WALLET: "/dashboard/wallet",
 } as const;
 
-// Grouped API Endpoints Export
+export const LIVE_ENDPOINTS = {
+  LIST: "/dashboard/lives",
+  CREATE: "/lives",
+  DETAILS: (id: string | number) => `/lives/${id}`,
+  UPDATE: (id: string | number) => `/lives/${id}`,
+  DELETE: (id: string | number) => `/lives/${id}`,
+} as const;
+
+export const PAYMENT_ENDPOINTS = {
+  DUMMY: "/payments/dummy",
+  INIT: "/payments/init",
+  DETAILS: (id: string | number) => `/payments/${id}`,
+} as const;
+
+export const COUPON_ENDPOINTS = {
+  LIST: "/coupons",
+  CREATE: "/coupons",
+  UPDATE: (id: string | number) => `/coupons/${id}`,
+  DELETE: (id: string | number) => `/coupons/${id}`,
+  VALIDATE: "/coupons/validate",
+} as const;
+
+export const CHAT_ENDPOINTS = {
+  CONVERSATIONS: "/chat/conversations",
+  CONVERSATION: (id: string | number) => `/chat/conversations/${id}`,
+  MESSAGES: (id: string | number) => `/chat/conversations/${id}/messages`,
+  DIRECT: "/chat/conversations/direct",
+  GROUPS: "/chat/groups",
+  JOIN_GROUP: (id: string | number) => `/chat/groups/${id}/join`,
+  READ: (id: string | number) => `/chat/conversations/${id}/read`,
+  SEND: "/chat/messages",
+  DELETE_MESSAGE: (id: string | number) => `/chat/messages/${id}`,
+  REACT: (id: string | number) => `/chat/messages/${id}/reactions`,
+  UPLOAD_IMAGE: "/chat/upload-image",
+} as const;
+
+export const NOTIFICATION_ENDPOINTS = {
+  LIST: "/notifications",
+  READ: (id: string | number) => `/notifications/${id}/read`,
+  READ_ALL: "/notifications/read-all",
+  UNREAD_COUNT: "/notifications/unread-count",
+} as const;
+
+export const CERTIFICATE_ENDPOINTS = {
+  ISSUE: (courseId: string | number) => `/certificates/${courseId}`,
+  MINE: (courseId: string | number) => `/certificates/me/${courseId}`,
+  VERIFY: (publicId: string) => `/certificates/verify/${publicId}`,
+} as const;
+
+export const INSTRUCTOR_ENDPOINTS = {
+  PROFILE: (id: string | number) => `/instructors/${id}`,
+  COURSES: (id: string | number) => `/instructors/${id}/courses`,
+} as const;
+
+export const WALLET_ENDPOINTS = {
+  ADMIN: "/admin/wallet",
+  INSTRUCTOR: "/dashboard/wallet",
+} as const;
+
+export const DISCUSSION_ENDPOINTS = {
+  REPLY: (id: string | number) => `/discussions/${id}/replies`,
+  UPVOTE: (id: string | number) => `/discussions/${id}/upvote`,
+} as const;
+
+export const REVIEW_ENDPOINTS = {
+  UPDATE: (id: string | number) => `/reviews/${id}`,
+  DELETE: (id: string | number) => `/reviews/${id}`,
+} as const;
+
 export const API_ENDPOINTS = {
   AUTH: AUTH_ENDPOINTS,
   COURSES: COURSE_ENDPOINTS,
@@ -129,6 +188,16 @@ export const API_ENDPOINTS = {
   ANALYTICS: ANALYTICS_ENDPOINTS,
   MEDIA: MEDIA_ENDPOINTS,
   DASHBOARD: DASHBOARD_ENDPOINTS,
+  LIVES: LIVE_ENDPOINTS,
+  PAYMENTS: PAYMENT_ENDPOINTS,
+  COUPONS: COUPON_ENDPOINTS,
+  CHAT: CHAT_ENDPOINTS,
+  NOTIFICATIONS: NOTIFICATION_ENDPOINTS,
+  CERTIFICATES: CERTIFICATE_ENDPOINTS,
+  INSTRUCTORS: INSTRUCTOR_ENDPOINTS,
+  WALLETS: WALLET_ENDPOINTS,
+  DISCUSSIONS: DISCUSSION_ENDPOINTS,
+  REVIEWS: REVIEW_ENDPOINTS,
 };
 
 export default API_ENDPOINTS;

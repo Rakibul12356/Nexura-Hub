@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { CloudUpload, CheckCircle, Image as ImageIcon } from "lucide-react";
+import { CloudUpload, CheckCircle } from "lucide-react";
+import { mediaApi } from "@/services/apiService";
 import { toast } from "react-toastify";
 
 interface UploadDropzoneProps {
@@ -19,46 +20,28 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
   onChange,
   value,
 }) => {
-  const [droppedFiles, setDroppedFiles] = useState<File[] | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
 
-  const startSimulatedProgress = () => {
-    setUploadProgress(0);
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 10;
-      });
-    }, 150);
-    return interval;
-  };
-
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (!acceptedFiles || acceptedFiles.length === 0) return;
-      setIsUploading(true);
-      const progressInterval = startSimulatedProgress();
-      setDroppedFiles(acceptedFiles);
-
-      // Create local preview URL
       const file = acceptedFiles[0];
-      const objectUrl = URL.createObjectURL(file);
-      
-      setTimeout(() => {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      try {
+        const uploaded = await mediaApi.uploadImage(file, (percent) => setUploadProgress(percent));
         setUploadProgress(100);
-        clearInterval(progressInterval);
-        setIsUploading(false);
-        setPreviewUrl(objectUrl);
-        if (onChange) {
-          onChange(objectUrl);
-        }
+        setPreviewUrl(uploaded.url);
+        onChange?.(uploaded.url);
         toast.success("File uploaded successfully");
-      }, 1000);
+      } catch {
+        toast.error("Upload failed. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     },
     [onChange]
   );

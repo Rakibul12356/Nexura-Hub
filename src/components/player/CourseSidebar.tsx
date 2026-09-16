@@ -11,6 +11,7 @@ import { CheckCircle, PlayCircle, Lock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReviewModal } from "./ReviewModal";
+import { CertificateGenerator } from "@/components/common/CertificateGenerator";
 import { useCourseDetailQuery } from "@/hooks/queries/useCoursesQuery";
 
 interface CourseSidebarProps {
@@ -66,7 +67,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({ onLessonClick }) =
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          {lesson.isCompleted ? (
+                          {lesson.completed ? (
                             <CheckCircle size={15} className="text-emerald-600 shrink-0" />
                           ) : lesson.isFree ? (
                             <PlayCircle size={15} className="text-sky-600 shrink-0" />
@@ -91,7 +92,10 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({ onLessonClick }) =
             <MessageSquare className="h-4 w-4" /> Course Community Chat
           </Link>
         </Button>
-        <ReviewModal />
+        <ReviewModal courseId={course?.id} />
+        {(course?.progress || 0) >= 100 && course?.id ? (
+          <CertificateGenerator courseId={course.id} courseTitle={course.title} />
+        ) : null}
       </div>
     </div>
   );

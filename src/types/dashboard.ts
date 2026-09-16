@@ -2,6 +2,7 @@ export interface DashboardStats {
   totalCourses: number;
   totalEnrollments: number;
   totalRevenue: number;
+  instructorEarnings?: number;
   totalStudents: number;
 }
 

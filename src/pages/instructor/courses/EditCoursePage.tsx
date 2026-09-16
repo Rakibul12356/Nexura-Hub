@@ -22,12 +22,8 @@ import {
   Pencil,
   PlusCircle,
   Trash2,
-  BookA,
-  GraduationCap,
   ArrowLeft,
-  CheckCircle,
 } from "lucide-react";
-import { toast } from "react-toastify";
 import { Module } from "@/types/course";
 import { confirmDelete } from "@/lib/confirmDelete";
 import {
@@ -35,7 +31,10 @@ import {
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useCategoriesQuery,
+  usePublishCourseMutation,
+  useReorderModulesMutation,
 } from "@/hooks/queries/useCoursesQuery";
+import { useCreateModuleMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const EditCoursePage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -44,6 +43,9 @@ export const EditCoursePage: React.FC = () => {
   const { data: categories = [] } = useCategoriesQuery();
   const updateCourseMutation = useUpdateCourseMutation();
   const deleteCourseMutation = useDeleteCourseMutation();
+  const publishCourseMutation = usePublishCourseMutation();
+  const createModuleMutation = useCreateModuleMutation(courseId || "");
+  const reorderModulesMutation = useReorderModulesMutation(courseId || "");
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState("");
@@ -93,7 +95,8 @@ export const EditCoursePage: React.FC = () => {
   };
 
   const handleTogglePublish = () => {
-    handleUpdate({ isPublished: !isPublished });
+    if (!courseId) return;
+    publishCourseMutation.mutate({ id: courseId, publish: !isPublished });
   };
 
   const handleDeleteCourse = async () => {
@@ -110,32 +113,27 @@ export const EditCoursePage: React.FC = () => {
 
   const handleAddModule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newModuleTitle.trim()) return;
+    if (!newModuleTitle.trim() || !courseId) return;
 
-    const newModule: Module = {
-      id: `mod-${Date.now()}`,
-      title: newModuleTitle.trim(),
-      position: modules.length + 1,
-      isPublished: false,
-      lessons: [],
-    };
-
-    const updatedModules = [...modules, newModule];
-    setModules(updatedModules);
-    handleUpdate({ modules: updatedModules });
-    setNewModuleTitle("");
-    setIsCreatingModule(false);
-    toast.success("Module created!");
+    createModuleMutation.mutate(
+      { title: newModuleTitle.trim() },
+      {
+        onSuccess: () => {
+          setNewModuleTitle("");
+          setIsCreatingModule(false);
+        },
+      }
+    );
   };
 
   const handleReorderModules = (updateData: { id: string | number; position: number }[]) => {
-    const updated = [...modules].sort((a, b) => {
-      const posA = updateData.find((u) => u.id === a.id)?.position || a.position || 0;
-      const posB = updateData.find((u) => u.id === b.id)?.position || b.position || 0;
+    const ordered = [...modules].sort((a, b) => {
+      const posA = updateData.find((u) => u.id === a.id)?.position ?? a.position ?? 0;
+      const posB = updateData.find((u) => u.id === b.id)?.position ?? b.position ?? 0;
       return posA - posB;
     });
-    setModules(updated);
-    handleUpdate({ modules: updated });
+    setModules(ordered);
+    reorderModulesMutation.mutate(ordered.map((m) => m.id));
   };
 
   return (
@@ -259,7 +257,11 @@ export const EditCoursePage: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button size="sm" onClick={() => { handleUpdate({ category }); setIsEditingCategory(false); }}>
+                  <Button size="sm" onClick={() => {
+                    const selected = categories.find((c) => c.title === category);
+                    handleUpdate({ category, categoryId: selected?.id });
+                    setIsEditingCategory(false);
+                  }}>
                     Save
                   </Button>
                 </div>

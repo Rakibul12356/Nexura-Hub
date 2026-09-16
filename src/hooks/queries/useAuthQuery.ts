@@ -2,23 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/services/apiService";
 import authService from "@/services/authService";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getRefreshToken } from "@/api/axiosInstance";
 import { LoginCredentials, RegisterCredentials, User } from "@/types/auth";
+import { getApiError } from "@/lib/api";
 import { toast } from "react-toastify";
 
 export const useLoginMutation = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      return await authService.login(credentials);
-    },
+    mutationFn: (credentials: LoginCredentials) => authService.login(credentials),
     onSuccess: (data) => {
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken);
       toast.success("Successfully logged in!");
     },
-    onError: (error: any) => {
-      const msg = error?.response?.data?.message || error.message || "Login failed";
-      toast.error(msg);
+    onError: (error: unknown) => {
+      toast.error(getApiError(error, "Login failed"));
     },
   });
 };
@@ -27,16 +26,13 @@ export const useRegisterMutation = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
-    mutationFn: async (data: RegisterCredentials) => {
-      return await authService.register(data);
-    },
+    mutationFn: (data: RegisterCredentials) => authService.register(data),
     onSuccess: (data) => {
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken);
       toast.success("Account created successfully!");
     },
-    onError: (error: any) => {
-      const msg = error?.response?.data?.message || error.message || "Registration failed";
-      toast.error(msg);
+    onError: (error: unknown) => {
+      toast.error(getApiError(error, "Registration failed"));
     },
   });
 };
@@ -61,18 +57,24 @@ export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userData: Partial<User>) => {
-      return await authApi.updateProfile(userData);
-    },
+    mutationFn: (userData: Partial<User>) => authApi.updateProfile(userData),
     onSuccess: (updatedUser) => {
       updateUser(updatedUser);
       queryClient.setQueryData(["auth", "profile"], updatedUser);
       toast.success("Profile updated successfully!");
     },
-    onError: (error: any) => {
-      const msg = error?.response?.data?.message || "Failed to update profile";
-      toast.error(msg);
+    onError: (error: unknown) => {
+      toast.error(getApiError(error, "Failed to update profile"));
     },
+  });
+};
+
+export const useChangePasswordMutation = () => {
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      authService.changePassword(data),
+    onSuccess: () => toast.success("Password changed successfully!"),
+    onError: (error: unknown) => toast.error(getApiError(error, "Failed to change password")),
   });
 };
 
@@ -83,9 +85,9 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: async () => {
       try {
-        await authApi.logout();
+        await authApi.logout(getRefreshToken());
       } catch {
-        // Fallback logout
+        /* still clear local session */
       }
     },
     onSettled: () => {

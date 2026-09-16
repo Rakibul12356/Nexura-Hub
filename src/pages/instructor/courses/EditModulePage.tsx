@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { IconBadge } from "@/components/common/icon-badge";
 import { AlertBanner } from "@/components/common/alert-banner";
@@ -52,88 +52,41 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toast } from "react-toastify";
-import { Lesson, LessonResource, QuizQuestion } from "@/types/course";
+import { Lesson, LessonResource } from "@/types/course";
 import { cn } from "@/lib/utils";
 import { confirmDelete } from "@/lib/confirmDelete";
+import { useQueryClient } from "@tanstack/react-query";
+import { mediaApi } from "@/services/apiService";
+import { dashboardService } from "@/services/dashboardService";
+import { courseService } from "@/services/courseService";
+import {
+  useModuleQuery,
+  useUpdateModuleMutation,
+  useCreateLessonMutation,
+  useUpdateLessonMutation,
+  useDeleteLessonMutation,
+  useDeleteModuleMutation,
+  useReorderLessonsMutation,
+} from "@/hooks/queries/useDashboardQuery";
 
 export const EditModulePage: React.FC = () => {
-  const { courseId = "1", moduleId = "1" } = useParams();
+  const { courseId = "", moduleId = "" } = useParams();
   const navigate = useNavigate();
-  const { quizSets } = useAppSelector((state) => state.dashboard);
+  const queryClient = useQueryClient();
+  const { data: moduleData, isLoading } = useModuleQuery(moduleId);
+  const updateModule = useUpdateModuleMutation();
+  const createLesson = useCreateLessonMutation(moduleId);
+  const updateLesson = useUpdateLessonMutation(moduleId);
+  const deleteLesson = useDeleteLessonMutation(moduleId);
+  const deleteModule = useDeleteModuleMutation(courseId);
+  const reorderLessons = useReorderLessonsMutation(moduleId);
 
-  const [moduleTitle, setModuleTitle] = useState("Introduction to React Ecosystem");
+  const [moduleTitle, setModuleTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [isPublished, setIsPublished] = useState(true);
-
-  const [lessons, setLessons] = useState<Lesson[]>([
-    {
-      id: "les-1",
-      title: "Course Overview & Learning Objectives",
-      description: "Getting set up with modern workspace tools, Vite, TypeScript and full-stack component lifecycle.",
-      videoUrl: "https://www.youtube.com/embed/666K4aizIu8",
-      isFree: true,
-      isPublished: true,
-      position: 1,
-      quizSetId: "quiz-1",
-      quizSetTitle: "React Fundamentals Assessment",
-      questions: [
-        {
-          id: "q-1",
-          title: "Which hook is used for side effects in React functional components?",
-          options: [
-            { id: "opt-1", label: "useEffect", isCorrect: true },
-            { id: "opt-2", label: "useState", isCorrect: false },
-            { id: "opt-3", label: "useReducer", isCorrect: false },
-            { id: "opt-4", label: "useMemo", isCorrect: false },
-          ],
-        },
-      ],
-      resources: [
-        { id: "res-1", title: "lecture-01-starter-code.zip", size: "2.4 MB", url: "https://github.com" },
-        { id: "res-2", title: "react-architecture-cheatsheet.pdf", size: "1.1 MB", url: "https://react.dev" },
-      ],
-    },
-    {
-      id: "les-2",
-      title: "What is React & Virtual DOM?",
-      description: "Core diffing algorithms, synthetic events and declarative UI paradigms.",
-      videoUrl: "https://www.youtube.com/embed/666K4aizIu8",
-      isFree: true,
-      isPublished: true,
-      position: 2,
-      quizSetId: "quiz-1",
-      quizSetTitle: "Virtual DOM Quiz",
-      questions: [
-        {
-          id: "q-2",
-          title: "What does the Virtual DOM do in React?",
-          options: [
-            { id: "opt-21", label: "Optimizes DOM updates with diffing algorithm", isCorrect: true },
-            { id: "opt-22", label: "Replaces HTML completely", isCorrect: false },
-            { id: "opt-23", label: "Runs database queries", isCorrect: false },
-            { id: "opt-24", label: "Styling CSS components", isCorrect: false },
-          ],
-        },
-      ],
-      resources: [
-        { id: "res-3", title: "virtual-dom-diagram.png", size: "650 KB", url: "https://react.dev" },
-      ],
-    },
-    {
-      id: "les-3",
-      title: "Components, State & Props",
-      description: "Managing local state with hooks, immutable update patterns and passing callbacks.",
-      videoUrl: "https://www.youtube.com/embed/666K4aizIu8",
-      isFree: false,
-      isPublished: true,
-      position: 3,
-      resources: [],
-    },
-  ]);
-
-  const [selectedLessonId, setSelectedLessonId] = useState<string | number>("les-1");
+  const [isPublished, setIsPublished] = useState(false);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | number>("");
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [newLessonTitle, setNewLessonTitle] = useState("");
 
@@ -154,6 +107,17 @@ export const EditModulePage: React.FC = () => {
   const [optD, setOptD] = useState("");
   const [correctIndex, setCorrectIndex] = useState<number>(0);
 
+  useEffect(() => {
+    if (!moduleData) return;
+    setModuleTitle(moduleData.title || "");
+    setIsPublished(Boolean(moduleData.isPublished));
+    const nextLessons = moduleData.lessons || [];
+    setLessons(nextLessons);
+    if (nextLessons.length && !nextLessons.some((l) => String(l.id) === String(selectedLessonId))) {
+      setSelectedLessonId(nextLessons[0].id);
+    }
+  }, [moduleData]);
+
   const activeLesson =
     lessons.find((l) => String(l.id) === String(selectedLessonId)) || lessons[0];
 
@@ -172,51 +136,69 @@ export const EditModulePage: React.FC = () => {
     const [reordered] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reordered);
     setLessons(items);
-    toast.success("Lessons reordered");
+    reorderLessons.mutate(items.map((l) => l.id));
+  };
+
+  const persistActiveLesson = (updated: Partial<Lesson> = {}) => {
+    if (!activeLesson) return;
+    updateLesson.mutate({
+      id: activeLesson.id,
+      data: {
+        title: activeLesson.title,
+        description: activeLesson.description,
+        videoUrl: activeLesson.videoUrl,
+        isFree: activeLesson.isFree,
+        isPublished: activeLesson.isPublished,
+        quizSetId: activeLesson.quizSetId,
+        ...updated,
+      },
+    });
   };
 
   const handleAddLesson = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLessonTitle.trim()) return;
-
-    const newLesson: Lesson = {
-      id: `les-${Date.now()}`,
-      title: newLessonTitle,
-      description: "Write a detailed overview of this lesson...",
-      videoUrl: "https://www.youtube.com/embed/666K4aizIu8",
-      isFree: false,
-      isPublished: true,
-      position: lessons.length + 1,
-      resources: [],
-      questions: [],
-    };
-    setLessons([...lessons, newLesson]);
-    setSelectedLessonId(newLesson.id);
-    setNewLessonTitle("");
-    setIsAddingLesson(false);
-    toast.success("Lesson added & selected!");
+    createLesson.mutate(
+      {
+        title: newLessonTitle.trim(),
+        isFree: false,
+        isPublished: true,
+      },
+      {
+        onSuccess: (lesson) => {
+          setSelectedLessonId(lesson.id);
+          setNewLessonTitle("");
+          setIsAddingLesson(false);
+        },
+      }
+    );
   };
 
-  const handleDeleteLesson = (lessonId: string | number) => {
-    const updated = lessons.filter((l) => String(l.id) !== String(lessonId));
-    setLessons(updated);
-    if (updated.length > 0) {
-      setSelectedLessonId(updated[0].id);
-    }
-    toast.success("Lesson deleted");
+  const handleDeleteLesson = async (lessonId: string | number) => {
+    const ok = await confirmDelete("Delete this lesson?");
+    if (!ok) return;
+    deleteLesson.mutate(lessonId, {
+      onSuccess: () => {
+        const remaining = lessons.filter((l) => String(l.id) !== String(lessonId));
+        if (remaining[0]) setSelectedLessonId(remaining[0].id);
+      },
+    });
   };
 
-  const handlePdfFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+    try {
+      const uploaded = await mediaApi.uploadPdf(file);
       setUploadedFileName(file.name);
-      const sizeMB = (file.size / (1024 * 1024)).toFixed(2) + " MB";
-      setNewResSize(sizeMB);
+      setNewResSize(uploaded.size || `${(file.size / (1024 * 1024)).toFixed(2)} MB`);
       if (!newResTitle) {
         setNewResTitle(file.name.replace(/\.[^/.]+$/, ""));
       }
-      setNewResUrl(URL.createObjectURL(file));
-      toast.success(`PDF File selected: ${file.name} (${sizeMB})`);
+      setNewResUrl(uploaded.url);
+      toast.success(`PDF uploaded: ${file.name}`);
+    } catch {
+      toast.error("PDF upload failed");
     }
   };
 
@@ -224,7 +206,7 @@ export const EditModulePage: React.FC = () => {
     setNewResContent((prev) => `${prev}${prefix}sample text${suffix}`);
   };
 
-  const handleAddResourceToActiveLesson = () => {
+  const handleAddResourceToActiveLesson = async () => {
     if (!newResTitle.trim() || !activeLesson) {
       toast.error("Please enter a resource title!");
       return;
@@ -234,45 +216,51 @@ export const EditModulePage: React.FC = () => {
     let finalSize = newResSize;
 
     if (resType === "github" && !finalUrl.trim()) {
-      finalUrl = "https://github.com/example/repository";
-    } else if (resType === "link" && !finalUrl.trim()) {
-      finalUrl = "https://react.dev/reference";
-    } else if (resType === "pdf") {
-      if (!finalUrl.trim()) finalUrl = "https://react.dev/cheatsheet.pdf";
-      if (!finalSize.trim()) finalSize = "1.8 MB";
+      toast.error("GitHub URL is required");
+      return;
+    }
+    if (resType === "link" && !finalUrl.trim()) {
+      toast.error("Resource URL is required");
+      return;
+    }
+    if (resType === "pdf" && !finalUrl.trim()) {
+      toast.error("Upload a PDF first");
+      return;
     }
 
-    const newRes: LessonResource = {
-      id: `res-${Date.now()}`,
-      title: newResTitle,
-      type: resType,
-      url: finalUrl,
-      size: finalSize,
-      content: resType === "richtext" ? newResContent : undefined,
-      fileName: uploadedFileName,
-    };
-
-    const updatedResources = [...(activeLesson.resources || []), newRes];
-    handleUpdateActiveLesson({ resources: updatedResources });
-
-    setNewResTitle("");
-    setNewResSize("");
-    setNewResUrl("");
-    setNewResContent("");
-    setUploadedFileName("");
-    toast.success("Resource added successfully!");
+    try {
+      await courseService.attachResource(activeLesson.id, {
+        title: newResTitle,
+        type: resType,
+        url: finalUrl,
+        size: finalSize,
+        content: resType === "richtext" ? newResContent : undefined,
+        fileName: uploadedFileName,
+      });
+      setNewResTitle("");
+      setNewResSize("");
+      setNewResUrl("");
+      setNewResContent("");
+      setUploadedFileName("");
+      toast.success("Resource added successfully!");
+      queryClient.invalidateQueries({ queryKey: ["module", moduleId] });
+    } catch {
+      toast.error("Failed to attach resource");
+    }
   };
 
-  const handleDeleteResourceFromActiveLesson = (resId: string | number) => {
+  const handleDeleteResourceFromActiveLesson = async (resId: string | number) => {
     if (!activeLesson) return;
-    const updatedResources = (activeLesson.resources || []).filter(
-      (r) => r.id !== resId
-    );
-    handleUpdateActiveLesson({ resources: updatedResources });
-    toast.success("Resource removed");
+    try {
+      await courseService.deleteResource(activeLesson.id, resId);
+      queryClient.invalidateQueries({ queryKey: ["module", moduleId] });
+      toast.success("Resource removed");
+    } catch {
+      toast.error("Failed to delete resource");
+    }
   };
 
-  const handleAddInlineQuestion = () => {
+  const handleAddInlineQuestion = async () => {
     if (!qTitle.trim()) {
       toast.error("Please enter a question title!");
       return;
@@ -281,6 +269,7 @@ export const EditModulePage: React.FC = () => {
       toast.error("Please provide at least Option A and Option B (Minimum 2 options)!");
       return;
     }
+    if (!activeLesson) return;
 
     const rawOpts = [
       { text: optA.trim(), origIdx: 0 },
@@ -290,38 +279,52 @@ export const EditModulePage: React.FC = () => {
     ].filter((o) => o.text.length > 0);
 
     const options = rawOpts.map((o) => ({
-      id: `opt-${o.origIdx}-${Date.now()}`,
       label: o.text,
       isCorrect: correctIndex === o.origIdx,
     }));
 
-    const updatedQuestions = [...(activeLesson.questions || []), {
-      id: `q-${Date.now()}`,
-      title: qTitle,
-      options,
-    }];
-
-    handleUpdateActiveLesson({
-      questions: updatedQuestions,
-      quizSetTitle: activeLesson.quizSetTitle || "Lesson Quiz Assessment",
-    });
-
-    setQTitle("");
-    setOptA("");
-    setOptB("");
-    setOptC("");
-    setOptD("");
-    setCorrectIndex(0);
-    toast.success("Quiz question added!");
+    try {
+      let quizId = activeLesson.quizSetId;
+      if (!quizId) {
+        const quiz = await dashboardService.createQuizSet({
+          title: activeLesson.quizSetTitle || `${activeLesson.title} Quiz`,
+        });
+        quizId = quiz.id;
+        await courseService.updateLesson(activeLesson.id, { quizSetId: quizId });
+      }
+      await dashboardService.addQuizQuestion(quizId, {
+        title: qTitle,
+        points: 5,
+        options,
+      });
+      queryClient.invalidateQueries({ queryKey: ["module", moduleId] });
+      queryClient.invalidateQueries({ queryKey: ["quiz-set", String(quizId)] });
+      setQTitle("");
+      setOptA("");
+      setOptB("");
+      setOptC("");
+      setOptD("");
+      setCorrectIndex(0);
+      toast.success("Quiz question added!");
+    } catch {
+      toast.error("Failed to add quiz question");
+    }
   };
 
-  const handleDeleteInlineQuestion = (qId: string | number) => {
-    const updatedQuestions = (activeLesson.questions || []).filter(
-      (q) => String(q.id) !== String(qId)
-    );
-    handleUpdateActiveLesson({ questions: updatedQuestions });
-    toast.success("Question removed");
+  const handleDeleteInlineQuestion = async (qId: string | number) => {
+    if (!activeLesson?.quizSetId) return;
+    try {
+      await dashboardService.deleteQuizQuestion(activeLesson.quizSetId, qId);
+      queryClient.invalidateQueries({ queryKey: ["module", moduleId] });
+      toast.success("Question removed");
+    } catch {
+      toast.error("Failed to delete question");
+    }
   };
+
+  if (isLoading) {
+    return <div className="p-6 text-center text-muted-foreground">Loading module...</div>;
+  }
 
   return (
     <>
@@ -346,10 +349,11 @@ export const EditModulePage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Button
               onClick={() => {
+                updateModule.mutate({
+                  id: moduleId,
+                  data: { isPublished: !isPublished },
+                });
                 setIsPublished(!isPublished);
-                toast.success(
-                  !isPublished ? "Module published" : "Module moved to draft"
-                );
               }}
               size="sm"
               className={
@@ -364,8 +368,9 @@ export const EditModulePage: React.FC = () => {
               onClick={async () => {
                 const ok = await confirmDelete("Are you sure you want to delete this module?");
                 if (ok) {
-                  toast.success("Module deleted successfully");
-                  navigate(`/dashboard/courses/${courseId}`);
+                  deleteModule.mutate(moduleId, {
+                    onSuccess: () => navigate(`/dashboard/courses/${courseId}`),
+                  });
                 }
               }}
               size="sm"
@@ -497,7 +502,7 @@ export const EditModulePage: React.FC = () => {
                       <Button
                         size="sm"
                         className="bg-sky-600 hover:bg-sky-700 text-white gap-1.5"
-                        onClick={() => toast.success("Lesson details saved")}
+                        onClick={() => persistActiveLesson()}
                       >
                         <Save className="h-4 w-4" /> Save Details
                       </Button>
@@ -522,7 +527,7 @@ export const EditModulePage: React.FC = () => {
                     <Button
                       size="sm"
                       className="bg-sky-600 hover:bg-sky-700 text-white gap-1.5"
-                      onClick={() => toast.success("Lesson description saved")}
+                      onClick={() => persistActiveLesson()}
                     >
                       <Save className="h-4 w-4" /> Save Description
                     </Button>
@@ -1148,8 +1153,8 @@ export const EditModulePage: React.FC = () => {
                       size="sm"
                       className="bg-sky-600 hover:bg-sky-700 text-white"
                       onClick={() => {
+                        updateModule.mutate({ id: moduleId, data: { title: moduleTitle } });
                         setIsEditingTitle(false);
-                        toast.success("Module title updated");
                       }}
                     >
                       Save Title

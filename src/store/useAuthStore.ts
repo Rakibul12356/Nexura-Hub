@@ -3,9 +3,9 @@ import { User } from "@/types/auth";
 import {
   getAuthToken,
   getUserData,
-  setAuthToken,
-  setUserData,
+  persistSession,
   removeAllAuthCookies,
+  setUserData,
 } from "@/api/axiosInstance";
 
 interface AuthStoreState {
@@ -14,9 +14,7 @@ interface AuthStoreState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
-  // Actions
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, token: string, refreshToken?: string) => void;
   updateUser: (userData: Partial<User>) => void;
   logout: () => void;
   setLoading: (isLoading: boolean) => void;
@@ -33,9 +31,8 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   isLoading: false,
   error: null,
 
-  setAuth: (user: User, token: string) => {
-    setAuthToken(token);
-    setUserData(user);
+  setAuth: (user, token, refreshToken) => {
+    persistSession(user, token, refreshToken);
     set({
       user,
       token,
@@ -45,7 +42,7 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
     });
   },
 
-  updateUser: (userData: Partial<User>) => {
+  updateUser: (userData) => {
     set((state) => {
       if (!state.user) return state;
       const updatedUser = { ...state.user, ...userData };
@@ -65,6 +62,6 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
     });
   },
 
-  setLoading: (isLoading: boolean) => set({ isLoading }),
-  setError: (error: string | null) => set({ error }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
 }));

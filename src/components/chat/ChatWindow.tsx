@@ -10,6 +10,9 @@ import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ChatMessage } from "@/types/chat";
 import { useSocket } from "@/hooks/useSocket";
+import { chatService } from "@/services/chatService";
+import { toast } from "react-toastify";
+import { getApiError } from "@/lib/api";
 
 interface ChatWindowProps {
   onBack?: () => void;
@@ -41,6 +44,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
       userId: currentUserId,
     });
     emitReaction(activeConversationId, messageId, emoji);
+    chatService.toggleReaction(messageId, emoji).catch(() => undefined);
   };
 
   const [inputMessage, setInputMessage] = useState("");
@@ -61,18 +65,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     scrollToBottom();
   }, [activeMessages]);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+    try {
+      const uploaded = await chatService.uploadImage(file);
+      setSelectedImage(uploaded.url);
+    } catch {
+      toast.error("Failed to upload image");
     }
   };
 
@@ -91,61 +95,55 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     }, 2000);
   };
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!inputMessage.trim() && !selectedImage) || !activeConversationId) return;
 
-    const replyData = replyingTo
-      ? {
-          id: replyingTo.id,
-          senderName: replyingTo.senderName,
-          content: replyingTo.content || (replyingTo.imageUrl ? "📷 Photo" : ""),
-        }
-      : undefined;
+    const content = inputMessage.trim();
+    const imageUrl = selectedImage || undefined;
+    const replyToId = replyingTo?.id;
 
     const senderObj = {
       id: user?.id || "user-1",
-      name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
-      avatar: user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-      role: (user?.role as any) || "student",
+      name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+      avatar: user?.avatar || "",
+      role: (user?.role as "student" | "instructor" | "admin") || "student",
     };
 
-    const socketMessageData: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      senderId: senderObj.id,
-      senderName: senderObj.name,
-      senderAvatar: senderObj.avatar,
-      senderRole: senderObj.role,
-      content: inputMessage.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isRead: true,
-      imageUrl: selectedImage || undefined,
-      replyTo: replyData,
-    };
+    try {
+      const saved = await chatService.sendMessage({
+        conversationId: activeConversationId,
+        content,
+        imageUrl,
+        replyToId,
+      });
+      sendMessageStore({
+        conversationId: activeConversationId,
+        content: saved.content || content,
+        imageUrl: saved.imageUrl || imageUrl,
+        replyTo: saved.replyTo,
+        sender: senderObj,
+      });
+      emitSendMessage(activeConversationId, saved);
+    } catch (error) {
+      toast.error(getApiError(error, "Failed to send message"));
+    }
 
-    sendMessageStore({
-      conversationId: activeConversationId,
-      content: inputMessage.trim(),
-      imageUrl: selectedImage || undefined,
-      replyTo: replyData,
-      sender: senderObj,
-    });
-
-    // Emit via WebSocket Client
-    emitSendMessage(activeConversationId, socketMessageData);
     emitTypingStatus(activeConversationId, false);
-
     setInputMessage("");
     setSelectedImage(null);
     setReplyingTo(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleUnsend = (messageId: string) => {
+  const handleUnsend = async (messageId: string) => {
     if (!activeConversationId) return;
-    unsendMessageStore({ conversationId: activeConversationId, messageId });
+    try {
+      await chatService.unsendMessage(messageId);
+      unsendMessageStore({ conversationId: activeConversationId, messageId });
+    } catch (error) {
+      toast.error(getApiError(error, "Failed to unsend message"));
+    }
   };
 
   const currentTypingUsers = (activeConversationId ? typingUsers[activeConversationId] : []) || [];

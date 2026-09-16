@@ -1,202 +1,136 @@
 import { axiosInstance } from "@/api/axiosInstance";
 import { AxiosRequestConfig } from "axios";
 import { API_ENDPOINTS } from "@/api/endpoints";
+import { unwrap, unwrapFromResponse } from "@/lib/api";
 import { User, LoginCredentials, RegisterCredentials } from "@/types/auth";
-import { Course, Module, Lesson, QuizSet, Category, EnrolledCourse } from "@/types/course";
-import { DashboardStats, LiveClass, StudentEnrollment } from "@/types/dashboard";
+import { Course, Module, Lesson, QuizSet } from "@/types/course";
 import { courseService } from "@/services/courseService";
 import { dashboardService } from "@/services/dashboardService";
+import { mediaService } from "@/services/chatService";
 
-/**
- * ---------------------------------------------------------
- * Generic Reusable API Service (Wrapper over Axios Instance)
- * ---------------------------------------------------------
- */
 export const apiService = {
-  /**
-   * Generic GET Request
-   */
-  async get<T>(url: string, params?: Record<string, any>, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.get<T>(url, { params, ...config });
-    return response.data;
+  async get<T>(url: string, params?: Record<string, unknown>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await axiosInstance.get(url, { params, ...config });
+    return unwrapFromResponse<T>(response);
   },
 
-  /**
-   * Generic POST Request
-   */
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.post<T>(url, data, config);
-    return response.data;
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await axiosInstance.post(url, data, config);
+    return unwrapFromResponse<T>(response);
   },
 
-  /**
-   * Generic PUT Request
-   */
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.put<T>(url, data, config);
-    return response.data;
+  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await axiosInstance.put(url, data, config);
+    return unwrapFromResponse<T>(response);
   },
 
-  /**
-   * Generic PATCH Request
-   */
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.patch<T>(url, data, config);
-    return response.data;
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await axiosInstance.patch(url, data, config);
+    return unwrapFromResponse<T>(response);
   },
 
-  /**
-   * Generic DELETE Request
-   */
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.delete<T>(url, config);
-    return response.data;
+    const response = await axiosInstance.delete(url, config);
+    return unwrapFromResponse<T>(response);
   },
 
-  /**
-   * Generic File / PDF / Image Upload Helper
-   */
   async uploadFile<T>(
     url: string,
     fileOrFormData: File | FormData,
     onProgress?: (progress: number) => void
   ): Promise<T> {
-    let formData: FormData;
-    if (fileOrFormData instanceof FormData) {
-      formData = fileOrFormData;
-    } else {
-      formData = new FormData();
-      formData.append("file", fileOrFormData);
-    }
+    const formData =
+      fileOrFormData instanceof FormData
+        ? fileOrFormData
+        : (() => {
+            const fd = new FormData();
+            fd.append("file", fileOrFormData);
+            return fd;
+          })();
 
-    const response = await axiosInstance.post<T>(url, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await axiosInstance.post(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          onProgress(percentCompleted);
+          onProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
         }
       },
     });
-
-    return response.data;
-  },
-
-  /**
-   * Standardized Reusable Generic CRUD Service Factory
-   */
-  createCrudService<T extends { id: string | number }>(baseEndpoint: string) {
-    return {
-      getAll: (params?: Record<string, any>): Promise<T[]> => apiService.get<T[]>(baseEndpoint, params),
-      getById: (id: string | number): Promise<T> => apiService.get<T>(`${baseEndpoint}/${id}`),
-      create: (data: Partial<T>): Promise<T> => apiService.post<T>(baseEndpoint, data),
-      update: (id: string | number, data: Partial<T>): Promise<T> => apiService.put<T>(`${baseEndpoint}/${id}`, data),
-      patch: (id: string | number, data: Partial<T>): Promise<T> => apiService.patch<T>(`${baseEndpoint}/${id}`, data),
-      delete: (id: string | number): Promise<{ success: boolean; id: string | number }> =>
-        apiService.delete<{ success: boolean; id: string | number }>(`${baseEndpoint}/${id}`),
-    };
+    return unwrapFromResponse<T>(response);
   },
 };
 
-/**
- * ---------------------------------------------------------
- * Domain-Specific Reusable API Services
- * ---------------------------------------------------------
- */
-
-// 1. Auth Service
 export const authApi = {
   login: (credentials: LoginCredentials) =>
-    apiService.post<{ user: User; token: string }>(API_ENDPOINTS.AUTH.LOGIN, credentials),
-
+    apiService.post<{ user: User; token: string; refreshToken?: string }>(API_ENDPOINTS.AUTH.LOGIN, credentials),
   register: (data: RegisterCredentials) =>
-    apiService.post<{ user: User; token: string }>(API_ENDPOINTS.AUTH.REGISTER, data),
-
+    apiService.post<{ user: User; token: string; refreshToken?: string }>(API_ENDPOINTS.AUTH.REGISTER, data),
   getProfile: () => apiService.get<User>(API_ENDPOINTS.AUTH.PROFILE),
-
-  updateProfile: (data: Partial<User>) =>
-    apiService.put<User>(API_ENDPOINTS.AUTH.UPDATE_PROFILE, data),
-
+  updateProfile: (data: Partial<User>) => apiService.put<User>(API_ENDPOINTS.AUTH.UPDATE_PROFILE, data),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data),
-
-  logout: () => apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT),
+  logout: (refreshToken?: string) =>
+    apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT, refreshToken ? { refreshToken } : {}),
 };
 
-// 2. Course API Service
 export const courseApi = {
-  getCourses: (params?: Record<string, any>) => courseService.getCourses(),
+  getCourses: (params?: Record<string, unknown>) => courseService.getCourses(params),
   getCourseById: (id: string | number) => courseService.getCourseById(id),
-  createCourse: (data: Partial<Course>) => apiService.post<Course>(API_ENDPOINTS.COURSES.CREATE, data),
-  updateCourse: (id: string | number, data: Partial<Course>) =>
-    apiService.put<Course>(API_ENDPOINTS.COURSES.UPDATE(id), data),
-  deleteCourse: (id: string | number) => apiService.delete<{ success: boolean }>(API_ENDPOINTS.COURSES.DELETE(id)),
-  publishCourse: (id: string | number) => apiService.patch<Course>(API_ENDPOINTS.COURSES.PUBLISH(id)),
-  unpublishCourse: (id: string | number) => apiService.patch<Course>(API_ENDPOINTS.COURSES.UNPUBLISH(id)),
+  createCourse: (data: Partial<Course>) => courseService.createCourse(data),
+  updateCourse: (id: string | number, data: Partial<Course>) => courseService.updateCourse(id, data),
+  deleteCourse: (id: string | number) => courseService.deleteCourse(id),
+  publishCourse: (id: string | number) => courseService.publishCourse(id, true),
+  unpublishCourse: (id: string | number) => courseService.publishCourse(id, false),
 };
 
-// 3. Module API Service
 export const moduleApi = {
-  getModules: (courseId: string | number) => apiService.get<Module[]>(API_ENDPOINTS.MODULES.LIST(courseId)),
-  getModuleById: (moduleId: string | number) => apiService.get<Module>(API_ENDPOINTS.MODULES.DETAILS(moduleId)),
-  createModule: (courseId: string | number, data: Partial<Module>) =>
-    apiService.post<Module>(API_ENDPOINTS.MODULES.CREATE(courseId), data),
-  updateModule: (moduleId: string | number, data: Partial<Module>) =>
-    apiService.put<Module>(API_ENDPOINTS.MODULES.UPDATE(moduleId), data),
-  deleteModule: (moduleId: string | number) =>
-    apiService.delete<{ success: boolean }>(API_ENDPOINTS.MODULES.DELETE(moduleId)),
+  getModules: (courseId: string | number) => courseService.getModules(courseId),
+  getModuleById: (moduleId: string | number) => courseService.getModule(moduleId),
+  createModule: (courseId: string | number, data: Partial<Module>) => courseService.createModule(courseId, data),
+  updateModule: (moduleId: string | number, data: Partial<Module>) => courseService.updateModule(moduleId, data),
+  deleteModule: (moduleId: string | number) => courseService.deleteModule(moduleId),
   reorderLessons: (moduleId: string | number, lessonIds: (string | number)[]) =>
-    apiService.put<{ success: boolean }>(API_ENDPOINTS.MODULES.REORDER_LESSONS(moduleId), { lessonIds }),
+    courseService.reorderLessons(moduleId, lessonIds),
 };
 
-// 4. Lesson API Service
 export const lessonApi = {
-  getLessonById: (lessonId: string | number) => apiService.get<Lesson>(API_ENDPOINTS.LESSONS.DETAILS(lessonId)),
-  createLesson: (moduleId: string | number, data: Partial<Lesson>) =>
-    apiService.post<Lesson>(API_ENDPOINTS.LESSONS.CREATE(moduleId), data),
-  updateLesson: (lessonId: string | number, data: Partial<Lesson>) =>
-    apiService.put<Lesson>(API_ENDPOINTS.LESSONS.UPDATE(lessonId), data),
-  deleteLesson: (lessonId: string | number) =>
-    apiService.delete<{ success: boolean }>(API_ENDPOINTS.LESSONS.DELETE(lessonId)),
-  attachResource: (lessonId: string | number, resourceData: any) =>
-    apiService.post(API_ENDPOINTS.LESSONS.ATTACH_RESOURCE(lessonId), resourceData),
+  getLessonById: (lessonId: string | number) => courseService.getLesson(lessonId),
+  createLesson: (moduleId: string | number, data: Partial<Lesson>) => courseService.createLesson(moduleId, data),
+  updateLesson: (lessonId: string | number, data: Partial<Lesson>) => courseService.updateLesson(lessonId, data),
+  deleteLesson: (lessonId: string | number) => courseService.deleteLesson(lessonId),
+  attachResource: (lessonId: string | number, resourceData: Partial<Lesson>) =>
+    courseService.attachResource(lessonId, resourceData),
   toggleComplete: (lessonId: string | number) =>
-    apiService.patch<{ completed: boolean }>(API_ENDPOINTS.LESSONS.TOGGLE_COMPLETE(lessonId)),
+    apiService.patch<{ completed: boolean; progress: number }>(API_ENDPOINTS.LESSONS.TOGGLE_COMPLETE(lessonId), {
+      completed: true,
+    }),
 };
 
-// 5. Quiz API Service
 export const quizApi = {
-  getQuizzes: (params?: Record<string, any>) => apiService.get<QuizSet[]>(API_ENDPOINTS.QUIZZES.LIST, params),
-  getQuizById: (quizId: string | number) => apiService.get<QuizSet>(API_ENDPOINTS.QUIZZES.DETAILS(quizId)),
-  createQuiz: (data: Partial<QuizSet>) => apiService.post<QuizSet>(API_ENDPOINTS.QUIZZES.CREATE, data),
-  updateQuiz: (quizId: string | number, data: Partial<QuizSet>) =>
-    apiService.put<QuizSet>(API_ENDPOINTS.QUIZZES.UPDATE(quizId), data),
-  deleteQuiz: (quizId: string | number) => apiService.delete<{ success: boolean }>(API_ENDPOINTS.QUIZZES.DELETE(quizId)),
-  submitQuiz: (quizId: string | number, answers: Record<string, string>) =>
-    apiService.post<{ score: number; passed: boolean }>(API_ENDPOINTS.QUIZZES.SUBMIT(quizId), { answers }),
+  getQuizzes: () => dashboardService.getQuizSets(),
+  getQuizById: (quizId: string | number) => dashboardService.getQuizSet(quizId),
+  createQuiz: (data: Partial<QuizSet>) => dashboardService.createQuizSet(data),
+  updateQuiz: (quizId: string | number, data: Partial<QuizSet>) => dashboardService.updateQuizSet(quizId, data),
+  deleteQuiz: (quizId: string | number) => dashboardService.deleteQuizSet(quizId),
+  submitQuiz: (quizId: string | number, answers: Record<string, string>, lessonId?: string | number) =>
+    dashboardService.submitQuiz(quizId, { answers, lessonId }),
 };
 
-// 6. Category API Service
 export const categoryApi = {
   getAll: () => courseService.getCategories(),
-  getById: (id: string | number) => apiService.get<Category>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`),
-  create: (data: Partial<Category>) => apiService.post<Category>(API_ENDPOINTS.CATEGORIES.LIST, data),
-  update: (id: string | number, data: Partial<Category>) => apiService.put<Category>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`, data),
-  delete: (id: string | number) => apiService.delete<{ success: boolean; id: string | number }>(`${API_ENDPOINTS.CATEGORIES.LIST}/${id}`),
+  getById: (id: string | number) => apiService.get(API_ENDPOINTS.CATEGORIES.DETAILS(id)),
+  create: (data: Record<string, unknown>) => apiService.post(API_ENDPOINTS.CATEGORIES.CREATE, data),
+  update: (id: string | number, data: Record<string, unknown>) =>
+    apiService.put(API_ENDPOINTS.CATEGORIES.UPDATE(id), data),
+  delete: (id: string | number) => apiService.delete(API_ENDPOINTS.CATEGORIES.DELETE(id)),
 };
 
-// 7. Enrollment API Service
 export const enrollmentApi = {
   getMyEnrolledCourses: () => courseService.getEnrolledCourses(),
-  enrollInCourse: (courseId: string | number) =>
-    apiService.post<EnrolledCourse>(API_ENDPOINTS.ENROLLMENTS.ENROLL, { courseId }),
-  checkEnrollmentStatus: (courseId: string | number) =>
-    apiService.get<{ isEnrolled: boolean }>(API_ENDPOINTS.ENROLLMENTS.STATUS(courseId)),
+  enrollInCourse: (courseId: string | number) => courseService.enrollFree(courseId),
+  checkEnrollmentStatus: (courseId: string | number) => courseService.getEnrollmentStatus(courseId),
 };
 
-// 8. Dashboard & Analytics API Service
 export const dashboardApi = {
   getStats: () => dashboardService.getStats(),
   getInstructorCourses: () => dashboardService.getInstructorCourses(),
@@ -205,15 +139,15 @@ export const dashboardApi = {
   getEnrollments: () => dashboardService.getEnrollments(),
 };
 
-// 9. Media & File Upload API Service
 export const mediaApi = {
   uploadImage: (file: File, onProgress?: (percent: number) => void) =>
-    apiService.uploadFile<{ url: string }>(API_ENDPOINTS.MEDIA.UPLOAD_IMAGE, file, onProgress),
+    mediaService.upload(API_ENDPOINTS.MEDIA.UPLOAD_IMAGE, file, onProgress),
   uploadPdf: (file: File, onProgress?: (percent: number) => void) =>
-    apiService.uploadFile<{ url: string; size: string }>(API_ENDPOINTS.MEDIA.UPLOAD_PDF, file, onProgress),
+    mediaService.upload(API_ENDPOINTS.MEDIA.UPLOAD_PDF, file, onProgress),
   uploadVideo: (file: File, onProgress?: (percent: number) => void) =>
-    apiService.uploadFile<{ url: string }>(API_ENDPOINTS.MEDIA.UPLOAD_VIDEO, file, onProgress),
+    mediaService.upload(API_ENDPOINTS.MEDIA.UPLOAD_VIDEO, file, onProgress),
   deleteFile: (fileUrl: string) => apiService.post<{ success: boolean }>(API_ENDPOINTS.MEDIA.DELETE_FILE, { fileUrl }),
 };
 
+export { unwrap };
 export default apiService;

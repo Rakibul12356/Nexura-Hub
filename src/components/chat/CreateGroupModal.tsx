@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useChatStore } from "@/store/useChatStore";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useCoursesQuery } from "@/hooks/queries/useCoursesQuery";
+import { useCreateChatGroupMutation } from "@/hooks/queries/useAdminQuery";
 import { toast } from "react-toastify";
 
 interface CreateGroupModalProps {
@@ -22,9 +22,10 @@ interface CreateGroupModalProps {
 }
 
 export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) => {
-  const createCourseGroupStore = useChatStore((state) => state.createCourseGroup);
-  const user = useAuthStore((state) => state.user);
-  const { data: courses = [] } = useCoursesQuery();
+  const createGroup = useCreateChatGroupMutation();
+  const upsertConversation = useChatStore((state) => state.upsertConversation);
+  const setActiveConversation = useChatStore((state) => state.setActiveConversation);
+  const { data: courses = [] } = useCoursesQuery({ mine: true });
 
   const [groupName, setGroupName] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
@@ -36,25 +37,18 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
       return;
     }
 
-    const selectedCourse = courses.find((c) => String(c.id) === selectedCourseId);
-    if (!selectedCourse) return;
-
-    createCourseGroupStore({
-      courseId: selectedCourse.id,
-      courseTitle: selectedCourse.title,
-      groupName: groupName.trim(),
-      instructor: {
-        id: user?.id || 101,
-        name: `${user?.firstName || "Instructor"} ${user?.lastName || ""}`.trim(),
-        avatar: user?.avatar || "https://github.com/shadcn.png",
-        role: "instructor",
-      },
-    });
-
-    toast.success(`Group "${groupName}" created successfully!`);
-    setGroupName("");
-    setSelectedCourseId("");
-    onClose();
+    createGroup.mutate(
+      { courseId: selectedCourseId, groupName: groupName.trim() },
+      {
+        onSuccess: (conv) => {
+          upsertConversation(conv);
+          setActiveConversation(conv.id);
+          setGroupName("");
+          setSelectedCourseId("");
+          onClose();
+        },
+      }
+    );
   };
 
   return (

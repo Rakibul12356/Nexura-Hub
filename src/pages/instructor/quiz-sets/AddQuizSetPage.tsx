@@ -6,9 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, BookA } from "lucide-react";
 import { toast } from "react-toastify";
+import { useCreateQuizSetMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const AddQuizSetPage: React.FC = () => {
   const navigate = useNavigate();
+  const createQuizSet = useCreateQuizSetMutation();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -19,9 +21,12 @@ export const AddQuizSetPage: React.FC = () => {
       return;
     }
 
-    const newSetId = Date.now();
-    toast.success("Quiz set created! Add questions now.");
-    navigate(`/dashboard/quiz-sets/${newSetId}`);
+    createQuizSet.mutate(
+      { title: title.trim(), description },
+      {
+        onSuccess: (quiz) => navigate(`/dashboard/quiz-sets/${quiz.id}`),
+      }
+    );
   };
 
   return (
@@ -69,8 +74,8 @@ export const AddQuizSetPage: React.FC = () => {
             <Button asChild variant="outline">
               <Link to="/dashboard/quiz-sets">Cancel</Link>
             </Button>
-            <Button type="submit" className="bg-sky-600 hover:bg-sky-700">
-              Continue to Questions
+            <Button type="submit" disabled={createQuizSet.isPending} className="bg-sky-600 hover:bg-sky-700">
+              {createQuizSet.isPending ? "Creating..." : "Continue to Questions"}
             </Button>
           </div>
         </form>

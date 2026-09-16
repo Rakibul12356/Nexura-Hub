@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useAppSelector } from "@/store/hooks";
 import { formatPrice } from "@/lib/formatPrice";
-import { PlatformTransaction } from "@/types/admin";
 import { RevenueChart } from "@/components/admin/charts/RevenueChart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,60 +22,43 @@ import {
 import {
   DollarSign,
   Percent,
-  ShieldCheck,
-  TrendingUp,
   Search,
   Download,
-  CreditCard,
   CheckCircle2,
-  Clock,
   ArrowUpRight,
   Receipt,
 } from "lucide-react";
 import { toast } from "react-toastify";
-
 import { exportToCsv } from "@/lib/exportToCsv";
+import { useAdminRevenueQuery } from "@/hooks/queries/useAdminQuery";
 
 export const AdminRevenuePage: React.FC = () => {
-  const {
-    transactions = [],
-    courses = [],
-    monthlyGrowth = [],
-  } = useAppSelector((state) => state.admin || {});
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCreatorFilter, setSelectedCreatorFilter] = useState("all");
+  const { data: revenue } = useAdminRevenueQuery({
+    search: searchTerm || undefined,
+    creatorType: selectedCreatorFilter === "all" ? undefined : selectedCreatorFilter,
+  });
 
-  const safeCourses = Array.isArray(courses) ? courses : [];
-  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+  const safeTransactions = Array.isArray(revenue?.transactions) ? revenue.transactions : [];
+  const monthlyGrowth = revenue?.monthlyGrowth || [];
 
-  const totalGmv = safeCourses.reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
-  const totalAdminEarnings = safeCourses.reduce((acc, c) => acc + (c.adminEarnings || 0), 0);
-  const totalInstructorPayouts = totalGmv - totalAdminEarnings;
-
-  const instructorCourseSales = safeCourses
-    .filter((c) => c.creatorType === "instructor")
-    .reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
-
-  const admin5PercentCut = Number((instructorCourseSales * 0.05).toFixed(2));
-
-  const adminDirectCourseSales = safeCourses
-    .filter((c) => c.creatorType === "admin")
-    .reduce((acc, c) => acc + (c.totalRevenue || 0), 0);
+  const totalGmv = revenue?.totalGmv || 0;
+  const totalAdminEarnings = revenue?.adminNetCommission || 0;
+  const admin5PercentCut = revenue?.admin5PercentCut || 0;
+  const instructorCourseSales = revenue?.instructorCourseSales || 0;
 
   const filteredTransactions = useMemo(() => {
     return safeTransactions.filter((txn) => {
       const matchSearch =
         txn.courseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         txn.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        txn.id.toLowerCase().includes(searchTerm.toLowerCase());
-
+        String(txn.id).toLowerCase().includes(searchTerm.toLowerCase());
       const matchCreator =
         selectedCreatorFilter === "all" || txn.creatorType === selectedCreatorFilter;
-
       return matchSearch && matchCreator;
     });
-  }, [transactions, searchTerm, selectedCreatorFilter]);
+  }, [safeTransactions, searchTerm, selectedCreatorFilter]);
 
   const handleExportCSV = () => {
     exportToCsv("Nexura_Revenue_Ledger.csv", filteredTransactions);

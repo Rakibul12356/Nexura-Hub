@@ -6,9 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Radio } from "lucide-react";
 import { toast } from "react-toastify";
+import { useCreateLiveMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const AddLivePage: React.FC = () => {
   const navigate = useNavigate();
+  const createLive = useCreateLiveMutation();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -25,8 +27,9 @@ export const AddLivePage: React.FC = () => {
       return;
     }
 
-    toast.success("Live class scheduled successfully!");
-    navigate("/dashboard/lives");
+    createLive.mutate(formData, {
+      onSuccess: () => navigate("/dashboard/lives"),
+    });
   };
 
   return (
@@ -115,8 +118,8 @@ export const AddLivePage: React.FC = () => {
             <Button asChild variant="outline">
               <Link to="/dashboard/lives">Cancel</Link>
             </Button>
-            <Button type="submit" className="bg-sky-600 hover:bg-sky-700">
-              Schedule Class
+            <Button type="submit" disabled={createLive.isPending} className="bg-sky-600 hover:bg-sky-700">
+              {createLive.isPending ? "Scheduling..." : "Schedule Class"}
             </Button>
           </div>
         </form>

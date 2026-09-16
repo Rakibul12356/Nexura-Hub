@@ -50,14 +50,16 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-x-1 text-xs text-muted-foreground">
                 <BookOpen className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                <span>{course.totalChapters || 4} Chapters</span>
+                <span>{course.totalChapters || 0} Chapters</span>
               </div>
 
-              <CourseProgress
-                size="sm"
-                value={course.progress || 80}
-                variant={course.progress === 100 ? "success" : undefined}
-              />
+              {typeof course.progress === "number" && course.progress > 0 && (
+                <CourseProgress
+                  size="sm"
+                  value={course.progress}
+                  variant={course.progress === 100 ? "success" : undefined}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -7,51 +7,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-export interface NotificationItem {
-  id: string;
-  type: "live" | "discussion" | "quiz" | "system";
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-}
+import {
+  useNotificationsQuery,
+  useUnreadNotificationCountQuery,
+  useMarkNotificationsReadMutation,
+} from "@/hooks/queries/useAdminQuery";
+import { NotificationItem } from "@/types/api";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { data: notifications = [] } = useNotificationsQuery();
+  const { data: unreadFromApi } = useUnreadNotificationCountQuery();
+  const markAllRead = useMarkNotificationsReadMutation();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "notif-1",
-      type: "live",
-      title: "Live Class Starting Soon",
-      message: "Mastering RTK Query & Redux 9 live stream starts in 15 minutes!",
-      timestamp: "5m ago",
-      isRead: false,
-    },
-    {
-      id: "notif-2",
-      type: "discussion",
-      title: "New Answer on Your Question",
-      message: "Tapas Adhikary replied to your thread in Module 1 Lesson 2.",
-      timestamp: "1h ago",
-      isRead: false,
-    },
-    {
-      id: "notif-3",
-      type: "quiz",
-      title: "Quiz Result Graded",
-      message: "You scored 100% on the Advanced React Hooks Assessment!",
-      timestamp: "1 day ago",
-      isRead: true,
-    },
-  ]);
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-  };
+  const unreadCount = unreadFromApi ?? notifications.filter((n) => !n.isRead).length;
 
   const getIcon = (type: NotificationItem["type"]) => {
     switch (type) {
@@ -101,7 +70,7 @@ export const NotificationCenter: React.FC = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={markAllAsRead}
+              onClick={() => markAllRead.mutate()}
               className="text-xs text-sky-600 hover:text-sky-700 h-auto p-0 flex items-center gap-1"
             >
               <CheckCheck className="h-3.5 w-3.5" />

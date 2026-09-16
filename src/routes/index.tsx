@@ -26,6 +26,7 @@ const CoursesPage = Loadable(lazy(() => import("@/pages/main/CoursesPage")));
 const CourseDetailPage = Loadable(lazy(() => import("@/pages/main/CourseDetailPage")));
 const InstructorProfilePage = Loadable(lazy(() => import("@/pages/main/InstructorProfilePage")));
 const EnrollSuccessPage = Loadable(lazy(() => import("@/pages/main/EnrollSuccessPage")));
+const CertificateVerifyPage = Loadable(lazy(() => import("@/pages/main/CertificateVerifyPage")));
 const AccountProfilePage = Loadable(lazy(() => import("@/pages/main/account/AccountProfilePage")));
 const EnrolledCoursesPage = Loadable(lazy(() => import("@/pages/main/account/EnrolledCoursesPage")));
 const ChatPage = Loadable(lazy(() => import("@/pages/main/ChatPage")));
@@ -88,8 +89,12 @@ export const router = createBrowserRouter([
             element: <CourseDetailPage />,
           },
           {
-            path: "inst-profile",
+            path: "inst-profile/:instructorId?",
             element: <InstructorProfilePage />,
+          },
+          {
+            path: "verify/:publicId",
+            element: <CertificateVerifyPage />,
           },
           {
             path: "enroll-success",
@@ -97,7 +102,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "messages",
-            element: <ChatPage />,
+            element: (
+              <ProtectedRoute requiredRoles={["student", "instructor"]}>
+                <ChatPage />
+              </ProtectedRoute>
+            ),
           },
           // Account nested routes
           {

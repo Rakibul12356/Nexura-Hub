@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSubmitQuizMutation } from "@/hooks/queries/useDashboardQuery";
 
 interface QuizOption {
-  id: number | string;
+  id?: number | string;
   label: string;
-  isCorrect: boolean;
+  isCorrect?: boolean;
 }
 
 interface QuizItem {
-  id: string;
+  id: string | number;
   title: string;
   description?: string;
   options: QuizOption[];
@@ -20,6 +21,8 @@ interface QuizItem {
 
 interface QuizModalProps {
   quizzes?: QuizItem[];
+  quizId?: string | number;
+  lessonId?: string | number;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   onComplete?: (score: number, passed: boolean) => void;
@@ -27,29 +30,10 @@ interface QuizModalProps {
   lessonTitle?: string;
 }
 
-const defaultQuizzes: QuizItem[] = [
-  {
-    id: "q1",
-    title: "What is the primary benefit of React Virtual DOM?",
-    options: [
-      { id: 1, label: "Batched and efficient DOM updates", isCorrect: true },
-      { id: 2, label: "Direct hardware acceleration", isCorrect: false },
-      { id: 3, label: "Runs C++ natively in browsers", isCorrect: false },
-    ],
-  },
-  {
-    id: "q2",
-    title: "How do props flow in React component hierarchy?",
-    options: [
-      { id: 1, label: "Top to bottom (Unidirectional data flow)", isCorrect: true },
-      { id: 2, label: "Bottom to top (Bidirectional flow)", isCorrect: false },
-      { id: 3, label: "Randomly across sibling components", isCorrect: false },
-    ],
-  },
-];
-
 export const QuizModal: React.FC<QuizModalProps> = ({
-  quizzes = defaultQuizzes,
+  quizzes = [],
+  quizId,
+  lessonId,
   isOpen,
   onOpenChange,
   onComplete,
@@ -60,6 +44,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const submitQuiz = useSubmitQuizMutation();
 
   const isModalOpen = isOpen !== undefined ? isOpen : internalOpen;
   const setModalOpen = (openVal: boolean) => {
@@ -94,22 +79,38 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   const handleSubmit = () => {
+    if (totalQuizzes === 0) return;
+
+    const answers: Record<string, string> = {};
+    quizzes.forEach((q, idx) => {
+      answers[String(q.id)] = String(selectedAnswers[idx] ?? "");
+    });
+
+    if (quizId) {
+      submitQuiz.mutate(
+        { quizId, lessonId, answers },
+        {
+          onSuccess: (result) => {
+            setSubmitted(true);
+            onComplete?.(result.score, result.passed);
+          },
+        }
+      );
+      return;
+    }
+
     setSubmitted(true);
     let score = 0;
     quizzes.forEach((q, idx) => {
       const selectedId = selectedAnswers[idx];
       const correctOpt = q.options.find((o) => o.isCorrect);
-      if (correctOpt && correctOpt.id === selectedId) {
+      if (correctOpt && String(correctOpt.id) === String(selectedId)) {
         score += 1;
       }
     });
-
-    const isPassed = score > 0;
+    const isPassed = totalQuizzes > 0 && score / totalQuizzes >= 0.5;
     toast.success(`Quiz Completed! You scored ${score} out of ${totalQuizzes}`);
-
-    setTimeout(() => {
-      onComplete?.(score, isPassed);
-    }, 800);
+    onComplete?.(score, isPassed);
   };
 
   return (
@@ -124,14 +125,15 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <div className="p-4 space-y-3">
             <div className="flex items-center justify-between text-sm font-medium">
               <span>Total Marks:</span>
-              <Badge variant="success">{totalQuizzes * 5} Pts</Badge>
+              <Badge variant="success">{Math.max(totalQuizzes, 1) * 5} Pts</Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Mandatory MCQ: Test your understanding before moving forward.
+              Mandatory MCQ: Test your understanding before moving forward. Pass mark is 50%.
             </p>
             <Button
               className="w-full gap-2 border-sky-500 text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950"
               variant="outline"
+              disabled={totalQuizzes === 0}
               onClick={() => {
                 setSubmitted(false);
                 setSelectedAnswers({});
@@ -151,7 +153,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <DialogHeader>
             <div className="flex items-center justify-between border-b pb-3 gap-2">
               <DialogTitle className="text-sm sm:text-base font-bold truncate">
-                {lessonTitle || "Lesson MCQ Assessment"} (Q {quizIndex + 1}/{totalQuizzes})
+                {lessonTitle || "Lesson MCQ Assessment"} (Q {quizIndex + 1}/{totalQuizzes || 1})
               </DialogTitle>
               <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">Mandatory MCQ</Badge>
             </div>
@@ -171,7 +173,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 if (isSelected) {
                   btnStyle = "border-sky-500 bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-medium";
                 }
-                if (submitted) {
+                if (submitted && typeof isCorrect === "boolean") {
                   if (isCorrect) {
                     btnStyle = "border-emerald-500 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 font-bold";
                   } else if (isSelected && !isCorrect) {
@@ -210,9 +212,9 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 gap-1"
                 onClick={handleSubmit}
-                disabled={submitted}
+                disabled={submitted || submitQuiz.isPending || totalQuizzes === 0}
               >
-                Submit Quiz
+                {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
               </Button>
             ) : (
               <Button size="sm" onClick={handleNext} className="gap-1">

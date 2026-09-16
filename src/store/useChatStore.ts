@@ -9,6 +9,10 @@ interface ChatStoreState {
   isSocketConnected: boolean;
   typingUsers: Record<string, { userId: string | number; userName: string }[]>;
 
+  hydrateConversations: (conversations: ChatConversation[]) => void;
+  hydrateMessages: (conversationId: string, messages: ChatMessage[]) => void;
+  upsertConversation: (conversation: ChatConversation) => void;
+
   // Actions
   setSocketConnected: (isConnected: boolean) => void;
   receiveSocketMessage: (data: { conversationId: string; message: ChatMessage }) => void;
@@ -55,6 +59,23 @@ export const useChatStore = create<ChatStoreState>((set) => ({
   isLoading: false,
   isSocketConnected: false,
   typingUsers: {},
+
+  hydrateConversations: (conversations) => set({ conversations }),
+
+  hydrateMessages: (conversationId, messages) =>
+    set((state) => ({
+      messages: { ...state.messages, [conversationId]: messages },
+    })),
+
+  upsertConversation: (conversation) =>
+    set((state) => {
+      const exists = state.conversations.some((c) => c.id === conversation.id);
+      return {
+        conversations: exists
+          ? state.conversations.map((c) => (c.id === conversation.id ? conversation : c))
+          : [conversation, ...state.conversations],
+      };
+    }),
 
   setSocketConnected: (isConnected: boolean) => set({ isSocketConnected: isConnected }),
 

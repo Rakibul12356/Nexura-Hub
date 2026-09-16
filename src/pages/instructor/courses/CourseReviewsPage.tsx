@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -11,34 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Search, Star } from "lucide-react";
+import { useCourseReviewsQuery } from "@/hooks/queries/useCoursesQuery";
 
 export const CourseReviewsPage: React.FC = () => {
   const { courseId } = useParams();
+  const { data: reviews = [], isLoading } = useCourseReviewsQuery(courseId || "");
   const [searchTerm, setSearchTerm] = useState("");
-
-  const reviews = [
-    {
-      id: 1,
-      studentName: "Sadia Rahman",
-      rating: 5,
-      comment: "Outstanding walkthrough of the entire modern React & Redux lifecycle!",
-      date: "2024-02-14",
-    },
-    {
-      id: 2,
-      studentName: "Anisur Khan",
-      rating: 5,
-      comment: "Clear explanations, solid real world examples. Highly recommend!",
-      date: "2024-02-18",
-    },
-    {
-      id: 3,
-      studentName: "Karim Ullah",
-      rating: 4,
-      comment: "Very helpful exercises and quizzes. Great pace.",
-      date: "2024-02-22",
-    },
-  ];
 
   const filtered = reviews.filter(
     (r) =>
@@ -88,22 +65,36 @@ export const CourseReviewsPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((item) => (
-              <TableRow key={item.id} className="hover:bg-muted/40">
-                <TableCell className="font-semibold">{item.studentName}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
-                    ))}
-                  </div>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  Loading reviews...
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm max-w-md">
-                  {item.comment}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-xs">{item.date}</TableCell>
               </TableRow>
-            ))}
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  No reviews yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((item) => (
+                <TableRow key={item.id} className="hover:bg-muted/40">
+                  <TableCell className="font-semibold">{item.studentName}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-amber-400">
+                      {[...Array(item.rating)].map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm max-w-md">
+                    {item.comment}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{item.date}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

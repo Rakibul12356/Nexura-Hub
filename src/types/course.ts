@@ -28,6 +28,7 @@ export interface Lesson {
   completed?: boolean;
   quizSetId?: string | number;
   quizSetTitle?: string;
+  hasQuiz?: boolean;
   questions?: QuizQuestion[];
   resources?: LessonResource[];
 }
@@ -42,7 +43,7 @@ export interface Module {
 }
 
 export interface QuizOption {
-  id: string | number;
+  id?: string | number;
   label: string;
   isCorrect: boolean;
 }
@@ -105,6 +106,9 @@ export interface Course {
   quizSets?: QuizSet[];
   reviews?: CourseReview[];
   learningPoints?: string[];
+  enrollmentsCount?: number;
+  totalRevenue?: number;
+  adminEarnings?: number;
 }
 
 export interface EnrolledCourse extends Course {
@@ -116,4 +120,5 @@ export interface EnrolledCourse extends Course {
   quizScore: number;
   otherScore: number;
   totalScore: number;
+  paymentStatus?: "paid" | "pending" | "failed";
 }

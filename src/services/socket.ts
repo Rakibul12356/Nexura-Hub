@@ -1,6 +1,7 @@
 // src/services/socket.ts
 import { io, Socket } from "socket.io-client";
-import { ChatMessage, ChatUser } from "@/types/chat";
+import { ChatMessage } from "@/types/chat";
+import { getAuthToken } from "@/api/axiosInstance";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -15,6 +16,7 @@ class SocketService {
     }
 
     const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://nexura-hub-backend.onrender.com";
+    const token = getAuthToken();
 
     this.socket = io(SOCKET_URL, {
       autoConnect: true,
@@ -25,7 +27,14 @@ class SocketService {
       auth: {
         userId,
         userRole,
+        token,
       },
+      query: {
+        token: token || "",
+        userId: String(userId),
+        userRole,
+      },
+      extraHeaders: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
     this.socket.on("connect", () => {

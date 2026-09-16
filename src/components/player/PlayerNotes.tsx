@@ -2,31 +2,26 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bookmark, Trash2, Plus, Clock } from "lucide-react";
 import { toast } from "react-toastify";
-
-export interface Note {
-  id: string;
-  timestamp: number;
-  text: string;
-  createdAt: string;
-}
+import {
+  useLessonNotesQuery,
+  useCreateNoteMutation,
+  useDeleteNoteMutation,
+} from "@/hooks/queries/useAdminQuery";
 
 interface PlayerNotesProps {
+  lessonId: string | number;
   currentTime: number;
   onSeek?: (timestamp: number) => void;
 }
 
 export const PlayerNotes: React.FC<PlayerNotesProps> = ({
+  lessonId,
   currentTime,
   onSeek,
 }) => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "note-1",
-      timestamp: 45,
-      text: "Remember to review Virtual DOM diffing algorithm details.",
-      createdAt: "Just now",
-    },
-  ]);
+  const { data: notes = [] } = useLessonNotesQuery(lessonId);
+  const createNote = useCreateNoteMutation(lessonId);
+  const deleteNote = useDeleteNoteMutation(lessonId);
   const [newNoteText, setNewNoteText] = useState("");
 
   const formatTime = (seconds: number) => {
@@ -41,21 +36,15 @@ export const PlayerNotes: React.FC<PlayerNotesProps> = ({
       return;
     }
 
-    const note: Note = {
-      id: `note-${Date.now()}`,
-      timestamp: Math.floor(currentTime),
-      text: newNoteText.trim(),
-      createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-
-    setNotes([note, ...notes]);
-    setNewNoteText("");
-    toast.success(`Note saved at ${formatTime(note.timestamp)}`);
-  };
-
-  const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter((n) => n.id !== id));
-    toast.info("Note deleted.");
+    createNote.mutate(
+      { timestamp: Math.floor(currentTime), text: newNoteText.trim() },
+      {
+        onSuccess: () => {
+          toast.success(`Note saved at ${formatTime(Math.floor(currentTime))}`);
+          setNewNoteText("");
+        },
+      }
+    );
   };
 
   return (
@@ -79,7 +68,12 @@ export const PlayerNotes: React.FC<PlayerNotesProps> = ({
           onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
           className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
         />
-        <Button size="sm" onClick={handleAddNote} className="gap-1 bg-sky-600 hover:bg-sky-700">
+        <Button
+          size="sm"
+          onClick={handleAddNote}
+          disabled={createNote.isPending}
+          className="gap-1 bg-sky-600 hover:bg-sky-700"
+        >
           <Plus className="h-4 w-4" />
           Add Note
         </Button>
@@ -110,7 +104,7 @@ export const PlayerNotes: React.FC<PlayerNotesProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleDeleteNote(note.id)}
+                onClick={() => deleteNote.mutate(note.id)}
                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
               >
                 <Trash2 className="h-3.5 w-3.5" />

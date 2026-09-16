@@ -25,12 +25,12 @@ import {
   Trash2,
   Search,
 } from "lucide-react";
-import { toast } from "react-toastify";
 import { confirmDelete } from "@/lib/confirmDelete";
-import { useQuizSetsQuery } from "@/hooks/queries/useDashboardQuery";
+import { useQuizSetsQuery, useDeleteQuizSetMutation } from "@/hooks/queries/useDashboardQuery";
 
 export const DashboardQuizSetsPage: React.FC = () => {
   const { data: quizSets = [], isLoading } = useQuizSetsQuery();
+  const deleteQuizSet = useDeleteQuizSetMutation();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = quizSets.filter((q) =>
@@ -40,7 +40,7 @@ export const DashboardQuizSetsPage: React.FC = () => {
   const handleDelete = async (id: string | number) => {
     const ok = await confirmDelete("Are you sure you want to delete this quiz set?");
     if (ok) {
-      toast.success("Quiz set deleted");
+      deleteQuizSet.mutate(id);
     }
   };
 

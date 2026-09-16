@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,11 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Search, GraduationCap } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
+import { useCourseEnrollmentsQuery } from "@/hooks/queries/useDashboardQuery";
 
 export const CourseEnrollmentsPage: React.FC = () => {
   const { courseId } = useParams();
-  const { enrollments } = useAppSelector((state) => state.dashboard);
+  const { data: enrollments = [], isLoading } = useCourseEnrollmentsQuery(courseId);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = enrollments.filter(
@@ -70,27 +69,41 @@ export const CourseEnrollmentsPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((item) => (
-              <TableRow key={item.id} className="hover:bg-muted/40">
-                <TableCell className="font-semibold">{item.studentName}</TableCell>
-                <TableCell className="text-muted-foreground">{item.studentEmail}</TableCell>
-                <TableCell className="text-muted-foreground text-xs">{item.enrolledDate}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 bg-secondary h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-sky-600 h-full rounded-full"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs">{item.progress}%</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="success">{item.paymentStatus}</Badge>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  Loading enrollments...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  No enrollments found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((item) => (
+                <TableRow key={item.id} className="hover:bg-muted/40">
+                  <TableCell className="font-semibold">{item.studentName}</TableCell>
+                  <TableCell className="text-muted-foreground">{item.studentEmail}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{item.enrolledDate}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-secondary h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-sky-600 h-full rounded-full"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs">{item.progress}%</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="success">{item.paymentStatus}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

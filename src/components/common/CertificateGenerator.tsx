@@ -7,35 +7,62 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Award, Download, CheckCircle, ShieldCheck } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
+import { Award, Download, ShieldCheck } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
+import {
+  useMyCertificateQuery,
+  useIssueCertificateMutation,
+} from "@/hooks/queries/useAdminQuery";
 
 interface CertificateGeneratorProps {
+  courseId?: string | number;
   courseTitle?: string;
   completionDate?: string;
   triggerClassName?: string;
 }
 
 export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
-  courseTitle = "Reactive Accelerator: Modern Full-Stack Masterclass",
-  completionDate = new Date().toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }),
+  courseId,
+  courseTitle = "Course Certificate",
+  completionDate,
   triggerClassName,
 }) => {
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useAuthStore((s) => s.user);
   const certRef = useRef<HTMLDivElement | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [open, setOpen] = useState(false);
+  const issueAttempted = useRef(false);
 
-  const studentName = user ? `${user.firstName} ${user.lastName}` : "Student Name";
-  const certId = `NEX-${Math.floor(100000 + Math.random() * 900000)}`;
-  const verifyUrl = `https://nexurahub.com/verify/${certId}`;
+  const { data: certificate } = useMyCertificateQuery(courseId);
+  const issueCertificate = useIssueCertificateMutation(courseId || "");
+
+  const studentName =
+    certificate?.studentName || (user ? `${user.firstName} ${user.lastName}` : "Student Name");
+  const certId = certificate?.publicId || "";
+  const issuedTitle = certificate?.courseTitle || courseTitle;
+  const issuedDate =
+    certificate?.completionDate ||
+    completionDate ||
+    new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  const verifyUrl =
+    certificate?.verifyUrl ||
+    (certId ? `${window.location.origin}/verify/${certId}` : "");
 
   useEffect(() => {
+    if (open && courseId && !certificate && !issueAttempted.current) {
+      issueAttempted.current = true;
+      issueCertificate.mutate();
+    }
+  }, [open, courseId, certificate, issueCertificate]);
+
+  useEffect(() => {
+    if (!verifyUrl) return;
     let isMounted = true;
     import("qrcode")
       .then((QRCodeModule) => {
@@ -45,7 +72,7 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
       .then((url) => {
         if (isMounted) setQrCodeUrl(url);
       })
-      .catch((err) => console.error("QR Code Error:", err));
+      .catch(() => undefined);
 
     return () => {
       isMounted = false;
@@ -53,7 +80,7 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
   }, [verifyUrl]);
 
   const handleDownloadPDF = async () => {
-    if (!certRef.current) return;
+    if (!certRef.current || !certId) return;
     setIsGenerating(true);
 
     try {
@@ -77,15 +104,15 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
 
       pdf.addImage(imgData, "PNG", 0, 0, 297, 210);
       pdf.save(`Certificate_${certId}.pdf`);
-    } catch (err) {
-      console.error("PDF Export failed:", err);
+    } catch {
+      // PDF export is client-side only; keep the dialog usable if it fails.
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           size="sm"
@@ -108,7 +135,7 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
           <Button
             size="sm"
             onClick={handleDownloadPDF}
-            disabled={isGenerating}
+            disabled={isGenerating || !certId}
             className="bg-sky-600 hover:bg-sky-700 gap-1.5"
           >
             <Download className="h-4 w-4" />
@@ -116,17 +143,14 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
           </Button>
         </DialogHeader>
 
-        {/* Certificate Card Content for Canvas rendering */}
         <div className="flex justify-center my-4 overflow-x-auto">
           <div
             ref={certRef}
             className="w-[842px] h-[595px] bg-slate-950 text-slate-100 p-10 relative flex flex-col justify-between border-8 border-amber-500/80 shadow-2xl font-serif"
             style={{ minWidth: "842px" }}
           >
-            {/* Background Branding Elements */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/20 via-slate-950 to-slate-950 pointer-events-none" />
 
-            {/* Certificate Header */}
             <div className="relative z-10 flex justify-between items-start border-b border-amber-500/30 pb-6">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-amber-500 to-sky-500 flex items-center justify-center font-bold text-xl text-black shadow-lg">
@@ -143,12 +167,11 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
               </div>
 
               <div className="text-right font-mono text-xs text-amber-400/80">
-                <p>CERTIFICATE ID: {certId}</p>
-                <p className="text-slate-400 mt-0.5">ISSUED: {completionDate}</p>
+                <p>CERTIFICATE ID: {certId || "Issuing…"}</p>
+                <p className="text-slate-400 mt-0.5">ISSUED: {issuedDate}</p>
               </div>
             </div>
 
-            {/* Certificate Main Title & Student Details */}
             <div className="relative z-10 text-center my-auto space-y-4">
               <p className="text-sm font-sans tracking-widest text-slate-300 uppercase">
                 THIS IS PROUDLY PRESENTED TO
@@ -163,11 +186,10 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
               </p>
 
               <h3 className="text-2xl font-bold text-sky-400 font-sans tracking-tight">
-                {courseTitle}
+                {issuedTitle}
               </h3>
             </div>
 
-            {/* Certificate Footer & Signatures */}
             <div className="relative z-10 flex justify-between items-end border-t border-amber-500/30 pt-6">
               <div className="flex items-center gap-4">
                 {qrCodeUrl && (
@@ -188,7 +210,7 @@ export const CertificateGenerator: React.FC<CertificateGeneratorProps> = ({
 
               <div className="text-center">
                 <div className="font-serif italic text-lg text-amber-300 border-b border-slate-600 pb-1 px-6">
-                  Tapas Adhikary
+                  Nexura Hub
                 </div>
                 <p className="text-xs font-sans text-slate-400 mt-1 uppercase tracking-wider">
                   Lead Instructor & Program Chair

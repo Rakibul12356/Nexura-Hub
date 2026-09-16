@@ -54,7 +54,7 @@ export const AddCoursePage: React.FC = () => {
       },
       {
         onSuccess: (newCourse) => {
-          navigate(`/dashboard/courses/${newCourse.id}/edit`);
+          navigate(`/dashboard/courses/${newCourse.id}`);
         },
       }
     );

@@ -8,17 +8,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  CreditCard,
-  CheckCircle2,
-  Download,
-  Tag,
-  ArrowRight,
-} from "lucide-react";
+import { CreditCard, CheckCircle2, Download, Tag, ArrowRight } from "lucide-react";
 import { toast } from "react-toastify";
 import { formatPrice } from "@/lib/formatPrice";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useChatStore } from "@/store/useChatStore";
+import { useDummyPaymentMutation, useValidateCouponMutation } from "@/hooks/queries/useAdminQuery";
+import { DummyPaymentResult } from "@/types/api";
 
 interface PaymentCheckoutModalProps {
   courseId?: string | number;
@@ -29,105 +24,89 @@ interface PaymentCheckoutModalProps {
 
 export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
   courseId = 1,
-  courseTitle = "Reactive Accelerator: Modern Full-Stack Masterclass",
-  originalPrice = 4999,
+  courseTitle = "Course",
+  originalPrice = 0,
   onSuccess,
 }) => {
   const user = useAuthStore((state) => state.user);
-  const autoJoinCourseGroupOnEnrollStore = useChatStore(
-    (state) => state.autoJoinCourseGroupOnEnroll
-  );
+  const dummyPay = useDummyPaymentMutation();
+  const validateCoupon = useValidateCouponMutation();
 
   const [gateway, setGateway] = useState<"stripe" | "sslcommerz" | "shurjopay">("stripe");
   const [couponCode, setCouponCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isPaid, setIsPaid] = useState(false);
-  const [transactionId, setTransactionId] = useState("");
+  const [receipt, setReceipt] = useState<DummyPaymentResult | null>(null);
 
   const finalPrice = Math.max(0, originalPrice - appliedDiscount);
 
   const handleApplyCoupon = () => {
-    if (couponCode.toUpperCase() === "NEXURA20") {
-      const discount = Math.round(originalPrice * 0.2);
-      setAppliedDiscount(discount);
-      toast.success("Coupon NEXURA20 applied! 20% discount added.");
-    } else if (couponCode.toUpperCase() === "FLAT500") {
-      setAppliedDiscount(500);
-      toast.success("Coupon FLAT500 applied! ৳500 discount added.");
-    } else {
-      toast.error("Invalid promo coupon code.");
+    if (!couponCode.trim()) {
+      toast.error("Please enter a coupon code.");
+      return;
     }
+    validateCoupon.mutate(
+      { code: couponCode.trim(), courseId },
+      {
+        onSuccess: (data) => {
+          setAppliedDiscount(data.discountAmount);
+          toast.success(`Coupon ${data.code} applied!`);
+        },
+      }
+    );
   };
 
   const handleCompletePayment = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      const txId = `TXN-${gateway.toUpperCase()}-${Math.floor(10000000 + Math.random() * 90000000)}`;
-      setTransactionId(txId);
-      setIsProcessing(false);
-      setIsPaid(true);
-
-      autoJoinCourseGroupOnEnrollStore({
+    if (!user) {
+      toast.error("Please sign in to enroll.");
+      return;
+    }
+    dummyPay.mutate(
+      {
         courseId,
-        courseTitle,
-        student: {
-          id: user?.id || "user-1",
-          name: `${user?.firstName || "Rahim"} ${user?.lastName || "Ahmed"}`.trim(),
-          avatar: user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-          role: "student",
+        couponCode: appliedDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
+        gateway,
+      },
+      {
+        onSuccess: (data) => {
+          setReceipt(data);
+          setIsPaid(true);
+          onSuccess?.();
         },
-        instructor: {
-          id: 101,
-          name: "Tapas Adhikary",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-          role: "instructor",
-        },
-      });
-
-      toast.success("Payment completed successfully!");
-      onSuccess?.();
-    }, 1500);
+      }
+    );
   };
 
   const handleDownloadInvoice = async () => {
+    if (!receipt) return;
     try {
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF();
       doc.setFont("helvetica", "bold");
       doc.setFontSize(20);
       doc.text("NEXURA HUB - OFFICIAL INVOICE", 14, 22);
-
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(`Invoice Date: ${new Date().toLocaleDateString()}`, 14, 30);
-      doc.text(`Transaction ID: ${transactionId}`, 14, 36);
-      doc.text(`Payment Gateway: ${gateway.toUpperCase()}`, 14, 42);
-
+      doc.text(`Invoice Date: ${new Date(receipt.paidAt).toLocaleDateString()}`, 14, 30);
+      doc.text(`Transaction ID: ${receipt.transactionId}`, 14, 36);
+      doc.text(`Payment Method: Dummy (${receipt.gatewayLabel || gateway})`, 14, 42);
       doc.line(14, 48, 196, 48);
-
       doc.setFont("helvetica", "bold");
       doc.text("Item Description", 14, 56);
       doc.text("Amount", 160, 56);
-
       doc.setFont("helvetica", "normal");
-      doc.text(courseTitle, 14, 66);
-      doc.text(`TK ${originalPrice}`, 160, 66);
-
-      if (appliedDiscount > 0) {
+      doc.text(receipt.courseTitle, 14, 66);
+      doc.text(`TK ${receipt.originalPrice}`, 160, 66);
+      if (receipt.discountAmount > 0) {
         doc.text("Coupon Discount", 14, 74);
-        doc.text(`- TK ${appliedDiscount}`, 160, 74);
+        doc.text(`- TK ${receipt.discountAmount}`, 160, 74);
       }
-
       doc.line(14, 82, 196, 82);
-
       doc.setFont("helvetica", "bold");
       doc.text("Total Paid:", 14, 90);
-      doc.text(`TK ${finalPrice}`, 160, 90);
-
-      doc.save(`Invoice_${transactionId}.pdf`);
-    } catch (error) {
-      console.error("Failed to generate invoice:", error);
+      doc.text(`TK ${receipt.amountPaid}`, 160, 90);
+      doc.save(`Invoice_${receipt.transactionId}.pdf`);
+    } catch {
       toast.error("Failed to generate invoice PDF");
     }
   };
@@ -146,20 +125,21 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-sky-600" />
-                Course Checkout & Payment
+                Course Checkout (Dummy Payment)
               </DialogTitle>
             </DialogHeader>
+
+            <p className="text-[11px] text-muted-foreground rounded-lg bg-amber-500/10 border border-amber-500/20 p-2">
+              No real card is charged. Payment is posted to the backend and credited to the admin dummy wallet.
+            </p>
 
             <div className="p-3.5 border rounded-xl bg-muted/30 space-y-1">
               <span className="text-xs text-muted-foreground">Course Selected</span>
               <h4 className="font-semibold text-sm leading-tight text-foreground">{courseTitle}</h4>
             </div>
 
-            {/* Gateway Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground block">
-                Select Payment Gateway
-              </label>
+              <label className="text-xs font-semibold text-muted-foreground block">Invoice gateway label</label>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: "stripe", name: "Stripe", badge: "Global" },
@@ -169,7 +149,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                   <button
                     key={g.id}
                     type="button"
-                    onClick={() => setGateway(g.id as any)}
+                    onClick={() => setGateway(g.id as typeof gateway)}
                     className={`p-3 rounded-xl border text-center font-semibold text-xs transition-all ${
                       gateway === g.id
                         ? "border-sky-500 bg-sky-500/10 text-sky-600 shadow-xs ring-1 ring-sky-500"
@@ -185,11 +165,8 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
               </div>
             </div>
 
-            {/* Coupon Promo Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground block">
-                Have a Promo Code?
-              </label>
+              <label className="text-xs font-semibold text-muted-foreground block">Have a Promo Code?</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -198,13 +175,18 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                   placeholder="e.g. NEXURA20"
                   className="flex-1 bg-background border rounded-lg px-3 py-1.5 text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
-                <Button size="sm" variant="outline" onClick={handleApplyCoupon} className="gap-1 text-xs">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleApplyCoupon}
+                  disabled={validateCoupon.isPending}
+                  className="gap-1 text-xs"
+                >
                   <Tag className="h-3.5 w-3.5" /> Apply
                 </Button>
               </div>
             </div>
 
-            {/* Price Summary Breakdown */}
             <div className="space-y-2 border-t pt-3 text-xs">
               <div className="flex justify-between text-muted-foreground">
                 <span>Original Price</span>
@@ -224,44 +206,38 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
 
             <Button
               onClick={handleCompletePayment}
-              disabled={isProcessing}
+              disabled={dummyPay.isPending}
               className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold gap-2 py-5 shadow"
             >
-              {isProcessing ? (
-                "Processing Secure Payment..."
+              {dummyPay.isPending ? (
+                "Processing dummy payment..."
               ) : (
                 <>
-                  Pay {formatPrice(finalPrice)} via {gateway.toUpperCase()}
+                  Pay {formatPrice(finalPrice)} (Dummy)
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
           </div>
         ) : (
-          /* Payment Success & Invoice Download Modal */
           <div className="text-center py-6 space-y-4">
             <div className="h-16 w-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="h-10 w-10" />
             </div>
-
             <div>
               <h3 className="text-xl font-bold text-foreground">Payment Successful!</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Thank you for enrolling in {courseTitle}.
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Thank you for enrolling in {courseTitle}.</p>
             </div>
-
             <div className="p-4 border rounded-xl bg-muted/30 text-xs space-y-1 font-mono text-left">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Transaction ID:</span>
-                <span className="font-bold">{transactionId}</span>
+                <span className="font-bold">{receipt?.transactionId}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Amount Paid:</span>
-                <span className="text-emerald-600 font-bold">{formatPrice(finalPrice)}</span>
+                <span className="text-emerald-600 font-bold">{formatPrice(receipt?.amountPaid || 0)}</span>
               </div>
             </div>
-
             <Button
               onClick={handleDownloadInvoice}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow"
